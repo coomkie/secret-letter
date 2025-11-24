@@ -6,7 +6,6 @@ import {CreateUserRequest} from "../../../core/application/dtos/users/request/cr
 import {UserSettings} from "../../../core/domain/entities/user-setting.entity";
 import {Mood} from "../../../core/domain/enums/mood.enum";
 import {Injectable, NotFoundException} from "@nestjs/common";
-import {Letters} from "../../../core/domain/entities/letter.entity";
 import {UpdateUserRequest} from "src/core/application/dtos/users/request/update-user-request";
 
 @Injectable()
@@ -17,6 +16,52 @@ export class UsersRepositoryImpl implements IUsersRepository {
         @InjectRepository(UserSettings)
         private readonly _settingsRepository: Repository<UserSettings>,
     ) {
+    }
+
+    getUserByReportId(reportId: string): Promise<Users | null> {
+        return this._userRepository.findOne({
+            where: {reports: {id: reportId}},
+            relations: {
+                settings: {
+                    user: true
+                },
+                letters: {
+                    user: true
+                },
+                sentMatches: {
+                    sender: true
+                },
+                receivedMatches: {
+                    receiver: true
+                },
+                reports: {
+                    reporter: true
+                },
+            }
+        });
+    }
+
+    getUserByLetterId(letterId: string): Promise<Users | null> {
+        return this._userRepository.findOne({
+            where: {letters: {id: letterId}},
+            relations: {
+                settings: {
+                    user: true
+                },
+                letters: {
+                    user: true
+                },
+                sentMatches: {
+                    sender: true
+                },
+                receivedMatches: {
+                    receiver: true
+                },
+                reports: {
+                    reporter: true
+                },
+            }
+        });
     }
 
     async updateUser(id: string, data: Partial<UpdateUserRequest>): Promise<Users> {

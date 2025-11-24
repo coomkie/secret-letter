@@ -6,6 +6,7 @@ import {TypeOrmModule} from "@nestjs/typeorm";
 import {UsersModule} from "./presentation/users/users.module";
 import {AuthModule} from "./presentation/auth/auth.module";
 import {SeedModule} from "./infra/database/seed/seed.module";
+import {UserSettingsModule} from "./presentation/user-settings/user-settings.module";
 
 @Module({
     imports: [
@@ -23,6 +24,7 @@ import {SeedModule} from "./infra/database/seed/seed.module";
             synchronize: false,
         }),
         UsersModule,
+        UserSettingsModule,
         AuthModule,
         SeedModule,
     ],

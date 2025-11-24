@@ -17,6 +17,10 @@ export interface IUsersRepository {
 
     getUserByEmail(email: string): Promise<Users | null>;
 
+    getUserByReportId(reportId: string): Promise<Users | null>;
+
+    getUserByLetterId(letterId: string): Promise<Users | null>;
+
     createUser(data: Partial<CreateUserRequest>): Promise<Users>;
 
     updateUser(id: string, data: Partial<UpdateUserRequest>):

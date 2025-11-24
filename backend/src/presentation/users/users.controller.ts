@@ -1,5 +1,5 @@
 import {Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards} from '@nestjs/common';
-import {ApiBearerAuth} from "@nestjs/swagger";
+import {ApiBearerAuth, ApiTags} from "@nestjs/swagger";
 import {CreateUserUseCase} from "../../core/application/use-cases/users/create-user.usecase";
 import {JwtAuthGuard} from "../../infra/auth/jwt-auth.guard";
 import {RolesGuard} from "../../infra/auth/roles.guard";
@@ -13,6 +13,7 @@ import {GetAllUserRequest} from "../../core/application/dtos/users/request/get-a
 import {UpdateUserRequest} from "../../core/application/dtos/users/request/update-user-request";
 
 @ApiBearerAuth('jwt')
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
     constructor(
