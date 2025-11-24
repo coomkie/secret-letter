@@ -15,7 +15,7 @@ export class UserResponse {
     letters: LettersResponse[];
     sentMatches: MatchNoMessagesResponse[];
     receivedMatches: MatchNoMessagesResponse[];
-    userSetting: UserSettingsResponse;
+    userSetting: UserSettingsResponse | null;
     reports: ReportsResponse[];
     created_at: Date;
     updated_at: Date;
@@ -44,7 +44,9 @@ export class UserResponse {
                 .filter(receivedMatch => !!receivedMatch)
                 .map(receivedMatch => new MatchNoMessagesResponse(receivedMatch))
             : [];
-        this.userSetting = new UserSettingsResponse(entity.settings);
+        this.userSetting = entity.settings
+            ? new UserSettingsResponse(entity.settings)
+            : null;
         this.reports = Array.isArray(entity.reports)
             ? entity.reports
                 .filter(report => !!report)

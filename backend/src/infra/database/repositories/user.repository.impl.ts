@@ -1,22 +1,42 @@
-import { FindAllUsersOptions, IUsersRepository } from "../../../core/application/interfaces/repositories/user.repository";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Users } from "../../../core/domain/entities/user.entity";
-import { Repository } from "typeorm";
-import { CreateUserRequest } from "../../../core/application/dtos/users/request/create-user-request";
-import { UserSettings } from "../../../core/domain/entities/user-setting.entity";
-import { Mood } from "../../../core/domain/enums/mood.enum";
-import { Injectable } from "@nestjs/common";
+import {FindAllUsersOptions, IUsersRepository} from "../../../core/application/interfaces/repositories/user.repository";
+import {InjectRepository} from "@nestjs/typeorm";
+import {Users} from "../../../core/domain/entities/user.entity";
+import {Like, Repository} from "typeorm";
+import {CreateUserRequest} from "../../../core/application/dtos/users/request/create-user-request";
+import {UserSettings} from "../../../core/domain/entities/user-setting.entity";
+import {Mood} from "../../../core/domain/enums/mood.enum";
+import {Injectable, NotFoundException} from "@nestjs/common";
 import {Letters} from "../../../core/domain/entities/letter.entity";
+import {UpdateUserRequest} from "src/core/application/dtos/users/request/update-user-request";
 
 @Injectable()
 export class UsersRepositoryImpl implements IUsersRepository {
     constructor(
         @InjectRepository(Users)
         private readonly _userRepository: Repository<Users>,
-
         @InjectRepository(UserSettings)
         private readonly _settingsRepository: Repository<UserSettings>,
-    ) {}
+    ) {
+    }
+
+    async updateUser(id: string, data: Partial<UpdateUserRequest>): Promise<Users> {
+        const user = await this._userRepository.findOneBy({
+            id, isAdmin: false
+        });
+        if (!user) {
+            throw new NotFoundException(`User with id ${id} not found`);
+        }
+        if (data.username) user.username = data.username;
+        if (data.gender) user.gender = data.gender;
+        if (data.avatar) user.avatar = data.avatar;
+
+        const result = await this._userRepository.save(user);
+        if (result) {
+            result.updated_at = new Date();
+            await this._userRepository.save(result);
+        }
+        return result;
+    }
 
     async createUser(data: CreateUserRequest): Promise<Users> {
         const entity = this._userRepository.create(data);
@@ -44,25 +64,71 @@ export class UsersRepositoryImpl implements IUsersRepository {
         return savedUser;
     }
 
-    deleteUser(id: string): Promise<void> {
-        return Promise.resolve(undefined);
+    async deleteUser(id: string): Promise<void> {
+        await this._userRepository.delete(id);
     }
 
-    getAllUsers(options: FindAllUsersOptions): Promise<[Users[], number]> {
-        return Promise.resolve([[], 0]);
+    async getAllUsers(options: FindAllUsersOptions): Promise<[Users[], number]> {
+        const {page = 1, pageSize = 10, search, sortBy = 'created_at', sortOrder = 'DESC'} = options;
+        const where: any = {isAdmin: false};
+
+        if (search) where.email = Like(`%${search}%`);
+
+        return await this._userRepository.findAndCount({
+            where,
+            order: {[sortBy]: sortOrder},
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+        })
     }
 
     getUserByEmail(email: string): Promise<Users | null> {
         return this._userRepository.findOne({
-            where: { email },
+            where: {email},
+            relations: {
+                settings: {
+                    user: true
+                },
+                letters: {
+                    user: true
+                },
+                sentMatches: {
+                    sender: true
+                },
+                receivedMatches: {
+                    receiver: true
+                },
+                reports: {
+                    reporter: true
+                },
+            }
         });
     }
 
     getUserById(id: string): Promise<Users | null> {
-        return Promise.resolve(new Users());
+        return this._userRepository.findOne({
+            where: {id, isAdmin: false},
+            relations: {
+                settings: {
+                    user: true
+                },
+                letters: {
+                    user: true
+                },
+                sentMatches: {
+                    sender: true
+                },
+                receivedMatches: {
+                    receiver: true
+                },
+                reports: {
+                    reporter: true
+                },
+            }
+        });
     }
 
     saveUser(data: Users): Promise<Users> {
-        return Promise.resolve(new Users());
+        return this._userRepository.save(data);
     }
 }

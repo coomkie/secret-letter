@@ -1,5 +1,6 @@
 import {Users} from "../../../domain/entities/user.entity";
 import {CreateUserRequest} from "../../dtos/users/request/create-user-request";
+import {UpdateUserRequest} from "../../dtos/users/request/update-user-request";
 
 export interface FindAllUsersOptions {
     page?: number,
@@ -18,8 +19,8 @@ export interface IUsersRepository {
 
     createUser(data: Partial<CreateUserRequest>): Promise<Users>;
 
-    // updateUser(id: string, data: Partial<UpdateUserRequest>):
-    //     Promise<Users>;
+    updateUser(id: string, data: Partial<UpdateUserRequest>):
+        Promise<Users>;
 
     saveUser(data: Users): Promise<Users>;
 

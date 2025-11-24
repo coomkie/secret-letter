@@ -10,6 +10,10 @@ import {Letters} from "../../core/domain/entities/letter.entity";
 import {Reports} from "../../core/domain/entities/report.entity";
 import {Matches} from "../../core/domain/entities/match.entity";
 import {Messages} from "../../core/domain/entities/message.entity";
+import {GetAllUsersUseCase} from "../../core/application/use-cases/users/get-all-user.usecase";
+import {UpdateUserUseCase} from "../../core/application/use-cases/users/update-user.usecase";
+import {DeleteUserUseCase} from "../../core/application/use-cases/users/delete-user.usecase";
+import {GetUserByIdUseCase} from "../../core/application/use-cases/users/get-user-by-id.usecase";
 
 @Module({
     imports: [
@@ -19,6 +23,10 @@ import {Messages} from "../../core/domain/entities/message.entity";
     controllers: [UsersController],
     providers: [
         CreateUserUseCase,
+        GetAllUsersUseCase,
+        UpdateUserUseCase,
+        DeleteUserUseCase,
+        GetUserByIdUseCase,
         {
             provide: 'IUsersRepository',
             useClass: UsersRepositoryImpl,
@@ -26,6 +34,10 @@ import {Messages} from "../../core/domain/entities/message.entity";
     ],
     exports: [
         CreateUserUseCase,
+        GetAllUsersUseCase,
+        UpdateUserUseCase,
+        DeleteUserUseCase,
+        GetUserByIdUseCase,
         'IUsersRepository',
     ]
 })

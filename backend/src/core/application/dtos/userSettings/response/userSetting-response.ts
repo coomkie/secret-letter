@@ -2,7 +2,7 @@ import {UserSettings} from "../../../../domain/entities/user-setting.entity";
 
 export class UserSettingsResponse {
     id: string;
-    userId: string;
+    userId: string | null;
     allowRandomMessages: boolean;
     preferredMoods: string[];
     notificationsEnabled: boolean;
@@ -11,7 +11,7 @@ export class UserSettingsResponse {
 
     constructor(entity: UserSettings) {
         this.id = entity.id;
-        this.userId = entity.user.id;
+        this.userId = entity.user?.id ?? null;
         this.allowRandomMessages = entity.allowRandomMessages;
         this.preferredMoods = entity.preferredMoods;
         this.notificationsEnabled = entity.notificationsEnabled;
