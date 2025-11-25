@@ -24,6 +24,34 @@
     }
 }
 
+@keyframes heartbeat {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    10%,
+    30% {
+        transform: scale(1.1);
+    }
+
+    20%,
+    40% {
+        transform: scale(1);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 .footer-container {
     position: relative;
     background: rgba(255, 255, 255, 0.85);
@@ -201,23 +229,13 @@
     animation: heartbeat 1.5s ease-in-out infinite;
 }
 
-@keyframes heartbeat {
-
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    10%,
-    30% {
-        transform: scale(1.1);
-    }
-
-    20%,
-    40% {
-        transform: scale(1);
-    }
+.gpt-icon {
+    font-size: 16px;
+    animation: spin 1.5s ease-in-out infinite;
+    color: rgb(26, 92, 234);
 }
+
+
 
 .footer-stats {
     display: flex;

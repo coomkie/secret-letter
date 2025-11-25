@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HeartOutlined, GithubOutlined, TwitterOutlined, MailOutlined } from '@ant-design/icons';
+import { HeartOutlined, GithubOutlined, TwitterOutlined, MailOutlined, OpenAIOutlined, HeartFilled } from '@ant-design/icons';
 import '../../CSS/Footer.css';
 import { useTranslation } from 'react-i18next';
 
@@ -189,10 +189,9 @@ const Footer: React.FC<SecretLetterFooterProps> = ({ currentMood = 'HAPPY' }) =>
                         </div>
                     </div>
 
-                    {/* Bottom Section */}
                     <div className="footer-bottom">
                         <div className="footer-copyright">
-                            © 2024 Secret Letter. Made with <HeartOutlined className="heart-icon" /> in Vietnam
+                            © 2025 Hidden Letter | Made with <OpenAIOutlined className="gpt-icon" /> and lots of <HeartFilled className="heart-icon" />
                         </div>
                     </div>
                 </div>
