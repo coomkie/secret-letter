@@ -1,0 +1,12 @@
+{
+  "home": "Home page",
+  "login": "Login",
+  "logout": "Logout",
+  "welcome_message": "Welcome to the Secret Letter application!",
+  "send_letter": "Send Letter",
+  "inbox": "Inbox mail",
+  "sent": "Sent mail",
+  "profile": "My Profile",
+  "settings": "Settings",
+  "about": "About Us"
+}
