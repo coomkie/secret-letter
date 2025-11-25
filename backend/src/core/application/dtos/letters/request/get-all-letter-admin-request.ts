@@ -1,9 +1,10 @@
-import {IsEnum, IsOptional, IsUUID} from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsOptional, IsUUID, IsBooleanString } from 'class-validator';
+import { Mood } from '../../../../domain/enums/mood.enum';
 import {PaginationRequest} from "./pagination-request";
-import {ApiPropertyOptional} from "@nestjs/swagger";
-import {Mood} from "../../../../domain/enums/mood.enum";
 
 export class GetAllLetterAdminRequest extends PaginationRequest {
+
     @ApiPropertyOptional()
     @IsOptional()
     @IsUUID()
@@ -14,13 +15,13 @@ export class GetAllLetterAdminRequest extends PaginationRequest {
     @IsUUID()
     matchId?: string;
 
-    @ApiPropertyOptional({enum: Mood})
+    @ApiPropertyOptional({ enum: Mood })
     @IsOptional()
     @IsEnum(Mood)
     mood?: Mood;
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({ type: Boolean })
     @IsOptional()
-    @IsOptional()
-    isSent?: boolean;
+    @IsBooleanString()
+    isSent?: string;
 }

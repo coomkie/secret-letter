@@ -3,7 +3,7 @@ import {Matches} from "../../../../domain/entities/match.entity";
 
 export class MatchNoMessagesResponse {
     id: string;
-    letterId: string;
+    letterId: string | null;
     senderId: string;
     receiverId: string;
     status: MatchStatus;
@@ -13,13 +13,14 @@ export class MatchNoMessagesResponse {
 
     constructor(entity: Matches) {
         this.id = entity.id;
-        this.letterId = entity.letter.id;
+        this.letterId = entity.letter?.id ?? null;
+        this.senderId = entity.sender.id;
         this.receiverId = entity.receiver.id;
         this.status = entity.status;
         this.messagesId = Array.isArray(entity.messages)
             ? entity.messages
                 .filter(message => !!message)
-                .map(receivedMatch => receivedMatch.id)
+                .map(message => message.id)
             : [];
         this.createdAt = entity.created_at;
         this.updatedAt = entity.updated_at;
