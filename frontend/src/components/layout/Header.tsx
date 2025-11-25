@@ -10,6 +10,7 @@ type Mood = 'HAPPY' | 'SAD' | 'ANGRY' | 'NEUTRAL';
 const Header: React.FC = () => {
     const { t, i18n } = useTranslation();
 
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [currentMood, setCurrentMood] = useState<Mood>('HAPPY');
     const [unreadCount, setUnreadCount] = useState(2);
     const savedLang = localStorage.getItem('lang') as 'vi' | 'en' | null;
@@ -18,6 +19,8 @@ const Header: React.FC = () => {
     const [particles, setParticles] = useState<Array<{ id: number; left: number; delay: number }>>([]);
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+        setIsAuthenticated(!!token);
         const newParticles = Array.from({ length: 15 }, (_, i) => ({
             id: i,
             left: Math.random() * 100,
@@ -27,10 +30,10 @@ const Header: React.FC = () => {
     }, []);
 
     const moodColors = {
-        HAPPY: { primary: '#fbbf24', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' },
-        SAD: { primary: '#60a5fa', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
-        ANGRY: { primary: '#f87171', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)' },
-        NEUTRAL: { primary: '#9ca3af', gradient: 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)' }
+        HAPPY: { primary: '#fbbf24', gradient: 'linear-gradient(135deg, #ffe671 0%, #ffc864  100%)', height: '2px' },
+        SAD: { primary: '#60a5fa', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)', height: '2px' },
+        ANGRY: { primary: '#f87171', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)', height: '2px' },
+        NEUTRAL: { primary: '#9ca3af', gradient: 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)', height: '2px' }
     };
 
     const userMenuItems: MenuProps['items'] = [
@@ -131,72 +134,85 @@ const Header: React.FC = () => {
                     {/* Navigation */}
                     <nav className="nav-section">
                         <div className="nav-item">
-                            <SendOutlined />
-                            <span>{t('send_letter')}</span>
-                        </div>
-                        <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Badge count={unreadCount} className="custom-badge">
-                                <MailOutlined style={{ fontSize: '18px' }} />
-                            </Badge>
-                            <span>{t('inbox')}</span>
-                        </div>
-                        <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Badge count={unreadCount} className="custom-badge">
-                                <InboxOutlined style={{ fontSize: '18px' }} />
-                            </Badge>
-                            <span>{t('sent')}</span>
-                        </div>
-                        <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <SolutionOutlined style={{ fontSize: '18px' }} />
                             <span>{t('about')}</span>
                         </div>
+
+                        {isAuthenticated && (
+                            <>
+                                <div className="nav-item">
+                                    <SendOutlined />
+                                    <span>{t('send_letter')}</span>
+                                </div>
+
+                                <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <Badge count={unreadCount} className="custom-badge">
+                                        <MailOutlined style={{ fontSize: '18px' }} />
+                                    </Badge>
+                                    <span>{t('inbox')}</span>
+                                </div>
+
+                                <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <Badge count={unreadCount} className="custom-badge">
+                                        <InboxOutlined style={{ fontSize: '18px' }} />
+                                    </Badge>
+                                    <span>{t('sent')}</span>
+                                </div>
+                            </>
+                        )}
                     </nav>
 
-                    {/* User section */}
+
                     <div className="user-section">
-                        {/* Mood selector */}
-                        <div className="mood-selector">
-                            {(['HAPPY', 'SAD', 'ANGRY', 'NEUTRAL'] as Mood[]).map(mood => (
-                                <button
-                                    key={mood}
-                                    className={`mood-btn ${currentMood === mood ? 'active' : ''}`}
-                                    onClick={() => changeMood(mood)}
-                                    style={{ background: moodColors[mood].gradient }}
-                                    title={mood}
-                                >
-                                    {mood === 'HAPPY' ? '😊' :
-                                        mood === 'SAD' ? '😢' :
-                                            mood === 'ANGRY' ? '😠' : '😐'}
-                                </button>
-                            ))}
-                        </div>
 
-                        {/* User dropdown */}
-                        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                            <Avatar
-                                size={40}
-                                icon={<UserOutlined />}
-                                style={{
-                                    cursor: 'pointer',
-                                    border: `2px solid ${moodColors[currentMood].primary}`,
-                                    transition: 'all 0.3s ease',
-                                    marginLeft: '12px'
-                                }}
-                            />
-                        </Dropdown>
+                        {/* Mood selector (only when logged in) */}
+                        {isAuthenticated && (
+                            <div className="mood-selector">
+                                {(['HAPPY', 'SAD', 'ANGRY', 'NEUTRAL'] as Mood[]).map(mood => (
+                                    <button
+                                        key={mood}
+                                        className={`mood-btn ${currentMood === mood ? 'active' : ''}`}
+                                        onClick={() => changeMood(mood)}
+                                        style={{ background: moodColors[mood].gradient }}
+                                    >
+                                        {mood === 'HAPPY' ? '😊' :
+                                            mood === 'SAD' ? '😢' :
+                                                mood === 'ANGRY' ? '😠' : '😐'}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
-                        {/* Language selector */}
+                        {/* Avatar OR Login/Register */}
+                        {isAuthenticated ? (
+                            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                                <div className="avatar-wrapper">
+                                    <img
+                                        className="user-avatar"
+                                        src="https://res.cloudinary.com/dshe78dng/image/upload/v1764082592/user_male_default_avatar-removebg-preview_dhix5q.png"
+                                        alt=""
+                                    />
+                                    <span className="avatar-status" style={{ background: 'rgb(42 232 47)' }} />
+                                </div>
+                            </Dropdown>
+                        ) : (
+                            <div className="auth-buttons">
+                                <button className="login-btn">{t('login')}</button>
+                                <button className="register-btn">{t('register')}</button>
+                            </div>
+                        )}
+
+                        {/* Language selector (always shown) */}
                         <Dropdown
                             menu={{ items: languageMenuItems, onClick: handleLanguageChange, selectedKeys: [currentLanguage] }}
                             placement="bottomRight"
                             trigger={['click']}
                         >
-                            <div className="language-selector" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '12px', justifyContent: 'center' }}>
-                                <img
-                                    src={currentLanguage === 'vi' ? viFlag : enFlag}
-                                    alt={currentLanguage}
-                                    style={{ width: 24, height: 16 }}
-                                />
+                            <div
+                                className="language-selector"
+                                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '12px' }}
+                            >
+                                <img src={currentLanguage === 'vi' ? viFlag : enFlag} style={{ width: 24, height: 16 }} alt="404" />
                                 <span>{currentLanguage.toUpperCase()}</span>
                             </div>
                         </Dropdown>

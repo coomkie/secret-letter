@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HeartOutlined, GithubOutlined, TwitterOutlined, MailOutlined } from '@ant-design/icons';
 import '../../CSS/Footer.css';
+import { useTranslation } from 'react-i18next';
 
 type Mood = 'HAPPY' | 'SAD' | 'ANGRY' | 'NEUTRAL';
 
@@ -10,7 +11,7 @@ interface SecretLetterFooterProps {
 
 const Footer: React.FC<SecretLetterFooterProps> = ({ currentMood = 'HAPPY' }) => {
     const [particles, setParticles] = useState<Array<{ id: number, left: number, delay: number }>>([]);
-
+    const { t } = useTranslation();
     useEffect(() => {
         const newParticles = Array.from({ length: 20 }, (_, i) => ({
             id: i,
@@ -29,22 +30,22 @@ const Footer: React.FC<SecretLetterFooterProps> = ({ currentMood = 'HAPPY' }) =>
 
     const footerLinks = {
         product: [
-            { label: 'Tính năng', href: '#' },
-            { label: 'Cách hoạt động', href: '#' },
-            { label: 'Bảng giá', href: '#' },
-            { label: 'FAQs', href: '#' }
+            { label: t('feature'), href: '#' },
+            { label: t('how_it_works'), href: '#' },
+            { label: t('price'), href: '#' },
+            { label: t('faq'), href: '#' }
         ],
         company: [
-            { label: 'Về chúng tôi', href: '#' },
-            { label: 'Blog', href: '#' },
-            { label: 'Careers', href: '#' },
-            { label: 'Liên hệ', href: '#' }
+            { label: t('about'), href: '#' },
+            { label: t('blog'), href: '#' },
+            { label: t('Carrers'), href: '#' },
+            { label: t('contact'), href: '#' }
         ],
         legal: [
-            { label: 'Điều khoản sử dụng', href: '#' },
-            { label: 'Chính sách bảo mật', href: '#' },
-            { label: 'Cookie Policy', href: '#' },
-            { label: 'Giấy phép', href: '#' }
+            { label: t('terms_of_service'), href: '#' },
+            { label: t('privacy_policy'), href: '#' },
+            { label: t('cookie_policy'), href: '#' },
+            { label: t('lisence'), href: '#' }
         ]
     };
 
@@ -124,11 +125,10 @@ const Footer: React.FC<SecretLetterFooterProps> = ({ currentMood = 'HAPPY' }) =>
                                 <div className="footer-logo-envelope">
                                     <MailOutlined />
                                 </div>
-                                <span className="footer-logo-text">Secret Letter</span>
+                                <span className="footer-logo-text">Hidden Letter</span>
                             </div>
                             <p className="footer-description">
-                                Nơi những lời chưa nói được gửi đi, nơi tâm trạng được chia sẻ ẩn danh.
-                                Hãy để trái tim bạn tự do bày tỏ.
+                                {t('footer_description')}
                             </p>
                             <div className="social-links">
                                 {socialLinks.map((social, index) => (
@@ -149,7 +149,7 @@ const Footer: React.FC<SecretLetterFooterProps> = ({ currentMood = 'HAPPY' }) =>
                         {/* Links Columns */}
                         <div className="footer-links">
                             <div className="footer-column">
-                                <h4 className="footer-column-title">Sản phẩm</h4>
+                                <h4 className="footer-column-title">{t('footer_product')}</h4>
                                 <ul className="footer-list">
                                     {footerLinks.product.map((link, index) => (
                                         <li key={index}>
@@ -162,7 +162,7 @@ const Footer: React.FC<SecretLetterFooterProps> = ({ currentMood = 'HAPPY' }) =>
                             </div>
 
                             <div className="footer-column">
-                                <h4 className="footer-column-title">Công ty</h4>
+                                <h4 className="footer-column-title">{t('footer_company')}</h4>
                                 <ul className="footer-list">
                                     {footerLinks.company.map((link, index) => (
                                         <li key={index}>
@@ -175,7 +175,7 @@ const Footer: React.FC<SecretLetterFooterProps> = ({ currentMood = 'HAPPY' }) =>
                             </div>
 
                             <div className="footer-column">
-                                <h4 className="footer-column-title">Pháp lý</h4>
+                                <h4 className="footer-column-title">{t('footer_privacy')}</h4>
                                 <ul className="footer-list">
                                     {footerLinks.legal.map((link, index) => (
                                         <li key={index}>
@@ -193,11 +193,6 @@ const Footer: React.FC<SecretLetterFooterProps> = ({ currentMood = 'HAPPY' }) =>
                     <div className="footer-bottom">
                         <div className="footer-copyright">
                             © 2024 Secret Letter. Made with <HeartOutlined className="heart-icon" /> in Vietnam
-                        </div>
-                        <div className="footer-stats">
-                            <span className="stat-item">1,234 thư đã gửi</span>
-                            <span className="stat-divider">•</span>
-                            <span className="stat-item">567 kết nối</span>
                         </div>
                     </div>
                 </div>
