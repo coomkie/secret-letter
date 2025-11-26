@@ -507,3 +507,13 @@
     font-size: 13px;
   }
 }
+
+.language-dropdown-menu {
+  width: 120px !important;
+  margin-top: 4px !important;
+}
+
+.language-dropdown-menu .ant-dropdown-menu-item {
+  white-space: nowrap;
+  /* không xuống dòng */
+}

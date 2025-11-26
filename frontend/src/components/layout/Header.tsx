@@ -5,21 +5,42 @@ import { useTranslation } from 'react-i18next';
 import '../../CSS/Header.css';
 import viFlag from '../../assets/vi_flag.jpg';
 import enFlag from '../../assets/eng_flag.jpg';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { MyJwtPayload } from '../../types/auth';
 type Mood = 'HAPPY' | 'SAD' | 'ANGRY' | 'NEUTRAL';
 
 const Header: React.FC = () => {
     const { t, i18n } = useTranslation();
-
+    const navigate = useNavigate();
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [currentMood, setCurrentMood] = useState<Mood>('HAPPY');
     const [unreadCount, setUnreadCount] = useState(2);
     const savedLang = localStorage.getItem('lang') as 'vi' | 'en' | null;
     const [currentLanguage, setCurrentLanguage] = useState<'vi' | 'en'>(savedLang || 'vi');
-
     const [particles, setParticles] = useState<Array<{ id: number; left: number; delay: number }>>([]);
+    const [currentUser, setCurrentUser] = useState<MyJwtPayload | null>(null);
 
+    const handleLogin = () => {
+        navigate('/auth');
+    }
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        navigate("/home");
+    };
+    const handleHomePage = () => {
+        navigate('/home');
+    }
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
+        if (token) {
+            try {
+                const decoded = jwtDecode<MyJwtPayload>(token);
+                setCurrentUser(decoded);
+            } catch (err) {
+                setCurrentUser(null);
+            }
+        }
         setIsAuthenticated(!!token);
         const newParticles = Array.from({ length: 15 }, (_, i) => ({
             id: i,
@@ -37,9 +58,9 @@ const Header: React.FC = () => {
     };
 
     const userMenuItems: MenuProps['items'] = [
-        { key: '1', label: t('profile') },
-        { key: '2', label: t('settings') },
-        { key: '3', label: t('logout') }
+        { key: '1', label: t('profile'), onClick: () => navigate('/profile') },
+        { key: '2', label: t('settings'), onClick: () => navigate('/setting') },
+        { key: '3', label: t('logout'), onClick: () => handleLogout() }
     ];
 
     const languageMenuItems: MenuProps['items'] = [
@@ -127,16 +148,16 @@ const Header: React.FC = () => {
                 <div className="header-content">
                     {/* Logo */}
                     <div className="logo-section">
-                        <div className="logo-envelope"><MailOutlined /></div>
-                        <span className="logo-text">Secret Letter</span>
+                        <div className="logo-envelope" onClick={handleHomePage}><MailOutlined /></div>
+                        <span className="logo-text">Hidden Letter</span>
                     </div>
 
                     {/* Navigation */}
                     <nav className="nav-section">
-                        <div className="nav-item">
+                        {/* <div className="nav-item">
                             <SolutionOutlined style={{ fontSize: '18px' }} />
                             <span>{t('about')}</span>
-                        </div>
+                        </div> */}
 
                         {isAuthenticated && (
                             <>
@@ -185,7 +206,7 @@ const Header: React.FC = () => {
 
                         {/* Avatar OR Login/Register */}
                         {isAuthenticated ? (
-                            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                            <Dropdown menu={{ items: userMenuItems, rootClassName: "language-dropdown-menu" }} placement="bottom">
                                 <div className="avatar-wrapper">
                                     <img
                                         className="user-avatar"
@@ -197,14 +218,19 @@ const Header: React.FC = () => {
                             </Dropdown>
                         ) : (
                             <div className="auth-buttons">
-                                <button className="login-btn">{t('login')}</button>
+                                <button className="login-btn" onClick={handleLogin}>{t('login')}</button>
                                 <button className="register-btn">{t('register')}</button>
                             </div>
                         )}
-
+                        <div style={{ fontSize: '14px' }}>{currentUser?.username}</div>
                         {/* Language selector (always shown) */}
                         <Dropdown
-                            menu={{ items: languageMenuItems, onClick: handleLanguageChange, selectedKeys: [currentLanguage] }}
+                            menu={{
+                                items: languageMenuItems,
+                                onClick: handleLanguageChange,
+                                selectedKeys: [currentLanguage],
+                                rootClassName: "language-dropdown-menu"
+                            }}
                             placement="bottomRight"
                             trigger={['click']}
                         >

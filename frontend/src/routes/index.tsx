@@ -1,13 +1,17 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import LoginPage from "../pages/auth/LoginPage";
 import PrivateRoute from "./PrivateRouter";
-import HomePage from "../pages/home/HomePage";
+import HomePage from "../pages/user/HomePage";
 import DefaultLayout from "../layouts/DefaultLayout";
+import AuthPage from "../pages/auth/AuthPage";
+import AdminHomePage from "../pages/admin/AdminHomePage";
+import ProfilePage from "../pages/user/ProfilePage";
 
 export const router = createBrowserRouter([
     {
-        path: "/login",
-        element: <LoginPage />,
+        element: <DefaultLayout />,
+        children: [
+            { path: "/auth", element: <AuthPage /> },
+        ],
     },
     {
         path: "/",
@@ -20,8 +24,9 @@ export const router = createBrowserRouter([
                 element: <DefaultLayout />,
                 children: [
                     { path: "/home", element: <HomePage /> },
-                    // { path: "/sent", element: <Sent /> },
-                    // { path: "/received", element: <Received /> },
+                    { path: "/auth", element: <AuthPage /> },
+                    { path: "/admin/home", element: <AdminHomePage /> },
+                    { path: "/profile", element: <ProfilePage /> },
                 ],
             },
         ],
