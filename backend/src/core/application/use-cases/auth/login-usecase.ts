@@ -16,7 +16,7 @@ export class LoginUseCase {
 
     async execute(data: LoginRequest): Promise<LoginResponse> {
         const user = await this._userRepository.getUserByEmail(data.email);
-        if (!user) throw new NotFoundException('Invalid email or password-');
+        if (!user) throw new NotFoundException('Invalid email or password');
 
         const hashedPassword = this._authService.hashPassword(data.password);
         if (hashedPassword !== user.password)
@@ -24,6 +24,7 @@ export class LoginUseCase {
 
         const token = this._authService.generateToken({
             sub: user.id,
+            username: user.username,
             email: user.email,
             isAdmin: user.isAdmin,
         });

@@ -9,6 +9,7 @@ import {JwtStrategy} from "../../infra/auth/jwt.strategy";
 import {AuthServiceImpl} from "../../infra/auth/auth.service.impl";
 import {UsersModule} from "../users/users.module";
 import {RegisterUseCase} from "../../core/application/use-cases/auth/register-usecase";
+import {MeUseCase} from "../../core/application/use-cases/auth/me-usecase";
 
 @Module({
     imports: [
@@ -27,13 +28,14 @@ import {RegisterUseCase} from "../../core/application/use-cases/auth/register-us
     providers: [
         LoginUseCase,
         RegisterUseCase,
+        MeUseCase,
         JwtStrategy,
         {
             provide: 'IAuthService',
             useClass: AuthServiceImpl,
         },
     ],
-    exports: [LoginUseCase,RegisterUseCase, 'IAuthService'],
+    exports: [LoginUseCase, RegisterUseCase, MeUseCase, 'IAuthService'],
 })
 export class AuthModule {
 }
