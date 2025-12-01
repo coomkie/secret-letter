@@ -5,6 +5,7 @@ import '../../CSS/Auth.css';
 import api from '../../apis/AxiosInstance';
 import { jwtDecode } from 'jwt-decode';
 import { MyJwtPayload } from '../../types/auth';
+import { useTranslation } from 'react-i18next';
 
 type AuthMode = 'login' | 'register';
 
@@ -19,6 +20,7 @@ interface FormErrors {
 
 const AuthPage = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [mode, setMode] = useState<AuthMode>('login');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -63,32 +65,32 @@ const AuthPage = () => {
 
         // Validate email
         if (!formData.email) {
-            newErrors.email = 'Vui lòng nhập email';
+            newErrors.email = t('blank_email');
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Email không hợp lệ';
+            newErrors.email = t('invalid_email');
         }
 
         // Validate password
         if (!formData.password) {
-            newErrors.password = 'Vui lòng nhập mật khẩu';
+            newErrors.password = t('blank_password');
         } else if (formData.password.length < 6) {
-            newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+            newErrors.password = t('invalid_password');
         }
 
         // Validate register fields
         if (mode === 'register') {
             if (!formData.username) {
-                newErrors.username = 'Vui lòng nhập tên người dùng';
+                newErrors.username = t('blank_username');
             }
 
             if (!formData.gender) {
-                newErrors.gender = 'Vui lòng chọn giới tính';
+                newErrors.gender = t('blank_gender');
             }
 
             if (!formData.confirmPassword) {
-                newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu';
+                newErrors.confirmPassword = t('blank_verify_password');
             } else if (formData.password !== formData.confirmPassword) {
-                newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+                newErrors.confirmPassword = t('not_match_verify_password');
             }
         }
 
@@ -144,7 +146,7 @@ const AuthPage = () => {
                     confirmPassword: '',
                     gender: ''
                 });
-                setErrors({ general: 'Đăng ký thành công! Vui lòng đăng nhập.' });
+                setErrors({ general: t('register_success') });
             }
         } catch (error: any) {
             console.error('Auth error:', error);
@@ -161,7 +163,7 @@ const AuthPage = () => {
                     setErrors({ general: errorMessage });
                 }
             } else {
-                setErrors({ general: 'Đã có lỗi xảy ra. Vui lòng thử lại sau.' });
+                setErrors({ general: t('register_fail') });
             }
         } finally {
             setLoading(false);
@@ -214,12 +216,12 @@ const AuthPage = () => {
                         </div>
 
                         <h2 className="illustration-title">
-                            {mode === 'login' ? 'Chào mừng trở lại' : 'Bắt đầu cuộc hành trình'}
+                            {mode === 'login' ? t('login_title_1') : t('login_title_2')}
                         </h2>
                         <p className="illustration-description">
                             {mode === 'login'
-                                ? 'Đăng nhập để tiếp tục gửi những lời chưa nói tới mọi người'
-                                : 'Tạo tài khoản để khám phá thế giới và chia sẻ cảm xúc'
+                                ? t('login_title_3')
+                                : t('login_title_4')
                             }
                         </p>
                     </div>
@@ -236,13 +238,9 @@ const AuthPage = () => {
 
                         <div className="auth-header">
                             <h1 className="auth-title">
-                                {mode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
+                                {mode === 'login' ? t('login') : t('register')}
                             </h1>
                             <p className="auth-subtitle">
-                                {mode === 'login'
-                                    ? 'Chào mừng bạn quay trở lại'
-                                    : 'Tạo tài khoản mới của bạn'
-                                }
                             </p>
                         </div>
 
@@ -271,20 +269,20 @@ const AuthPage = () => {
                         </div>
 
                         <div className="divider">
-                            <span>hoặc</span>
+                            <span>{t('login_title_7')}</span>
                         </div>
 
                         <div className="auth-form">
                             {mode === 'register' && (
                                 <div className="form-group">
-                                    <label className="form-label">Tên người dùng</label>
+                                    <label className="form-label">{t('username')}</label>
                                     <div className="input-wrapper">
                                         <UserOutlined className="input-icon" />
                                         <input
                                             type="text"
                                             name="username"
                                             className="form-input"
-                                            placeholder="Nhập tên người dùng"
+                                            placeholder={t('username_title')}
                                             value={formData.username}
                                             onChange={handleInputChange}
                                         />
@@ -305,7 +303,7 @@ const AuthPage = () => {
                                         type="email"
                                         name="email"
                                         className="form-input"
-                                        placeholder="example@email.com"
+                                        placeholder="abc@gmail.com"
                                         value={formData.email}
                                         onChange={handleInputChange}
                                     />
@@ -319,7 +317,7 @@ const AuthPage = () => {
 
                             {mode === 'register' && (
                                 <div className="form-group">
-                                    <label className="form-label">Giới tính</label>
+                                    <label className="form-label">{t('gender')}</label>
                                     <div className="gender-options">
                                         <label className="gender-item">
                                             <input
@@ -329,7 +327,7 @@ const AuthPage = () => {
                                                 checked={formData.gender === 'male'}
                                                 onChange={handleInputChange}
                                             />
-                                            <span>Nam</span>
+                                            <span>{t('male')}</span>
                                         </label>
 
                                         <label className="gender-item">
@@ -340,7 +338,7 @@ const AuthPage = () => {
                                                 checked={formData.gender === 'female'}
                                                 onChange={handleInputChange}
                                             />
-                                            <span>Nữ</span>
+                                            <span>{t('female')}</span>
                                         </label>
                                     </div>
                                     {errors.gender && (
@@ -352,14 +350,14 @@ const AuthPage = () => {
                             )}
 
                             <div className="form-group">
-                                <label className="form-label">Mật khẩu</label>
+                                <label className="form-label">{t('password')}</label>
                                 <div className="input-wrapper">
                                     <LockOutlined className="input-icon" />
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         name="password"
                                         className="form-input"
-                                        placeholder="Nhập mật khẩu"
+                                        placeholder={t('password_title')}
                                         value={formData.password}
                                         onChange={handleInputChange}
                                     />
@@ -380,14 +378,14 @@ const AuthPage = () => {
 
                             {mode === 'register' && (
                                 <div className="form-group">
-                                    <label className="form-label">Xác nhận mật khẩu</label>
+                                    <label className="form-label">{t('verify_password')}</label>
                                     <div className="input-wrapper">
                                         <LockOutlined className="input-icon" />
                                         <input
                                             type={showConfirmPassword ? 'text' : 'password'}
                                             name="confirmPassword"
                                             className="form-input"
-                                            placeholder="Nhập lại mật khẩu"
+                                            placeholder={t('verify_password_title')}
                                             value={formData.confirmPassword}
                                             onChange={handleInputChange}
                                         />
@@ -411,9 +409,9 @@ const AuthPage = () => {
                                 <div className="form-options">
                                     <label className="checkbox-label">
                                         <input type="checkbox" className="form-checkbox" />
-                                        <span>Ghi nhớ đăng nhập</span>
+                                        <span>{t('remember_password')}</span>
                                     </label>
-                                    <a href="#" className="forgot-link">Quên mật khẩu?</a>
+                                    <a href="#" className="forgot-link">{t('forgot_password')}</a>
                                 </div>
                             )}
 
@@ -422,7 +420,7 @@ const AuthPage = () => {
                                     <label className="checkbox-label">
                                         <input type="checkbox" className="form-checkbox" />
                                         <span>
-                                            Tôi đồng ý với <a href="#">Điều khoản</a> và <a href="#">Chính sách bảo mật</a>
+                                            {t('privacy_title_1')} <a href="#">{t('privacy_title_2')}</a>{t('privacy_title_3')}<a href="#"> {t('privacy_title_4')}</a>
                                         </span>
                                     </label>
                                 </div>
@@ -437,16 +435,16 @@ const AuthPage = () => {
                                     cursor: loading ? 'not-allowed' : 'pointer'
                                 }}
                             >
-                                {loading ? 'Đang xử lý...' : (mode === 'login' ? 'Đăng nhập' : 'Đăng ký')}
+                                {loading ? t('loading') : (mode === 'login' ? t('login') : t('register'))}
                             </button>
                         </div>
 
                         <div className="auth-switch">
                             <span>
-                                {mode === 'login' ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}
+                                {mode === 'login' ? t('login_content_1') : t('login_content_2')}
                             </span>
                             <button className="switch-btn" onClick={switchMode}>
-                                {mode === 'login' ? 'Đăng ký ngay' : 'Đăng nhập'}
+                                {mode === 'login' ? t('login_content_3') : t('login')}
                             </button>
                         </div>
                     </div>

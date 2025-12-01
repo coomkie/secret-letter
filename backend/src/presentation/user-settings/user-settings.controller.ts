@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Param, Patch, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Param, Patch, Request, UseGuards} from '@nestjs/common';
 import {ApiBearerAuth, ApiTags} from "@nestjs/swagger";
 import {
     GetUserSettingByUserIdUseCase
@@ -17,16 +17,16 @@ export class UserSettingsController {
     ) {
     }
 
-    @Get(':userId')
+    @Get()
     @UseGuards(JwtAuthGuard)
-    GetUserSettingByUserIdUseCase(@Param('userId') userId: string) {
-        return this.getUserSettingByUserIdUseCase.execute(userId);
+    GetUserSettingByUserIdUseCase(@Request() req: any,) {
+        return this.getUserSettingByUserIdUseCase.execute(req.user.userId);
     }
 
-    @Patch(':userId')
+    @Patch()
     @UseGuards(JwtAuthGuard)
-    UpdateUserSetting(@Param('userId') userId: string, @Body() body: UpdateUserSettingRequest) {
-        return this.updateUserSettingUseCase.execute(userId, body);
+    UpdateUserSetting(@Request() req: any, @Body() body: UpdateUserSettingRequest) {
+        return this.updateUserSettingUseCase.execute(req.user.userId, body);
     }
 
 }

@@ -9,7 +9,6 @@ import {UserSettings} from "../../core/domain/entities/user-setting.entity";
 import {Letters} from "../../core/domain/entities/letter.entity";
 import {Reports} from "../../core/domain/entities/report.entity";
 import {Matches} from "../../core/domain/entities/match.entity";
-import {Messages} from "../../core/domain/entities/message.entity";
 import {GetAllUsersUseCase} from "../../core/application/use-cases/users/get-all-user.usecase";
 import {UpdateUserUseCase} from "../../core/application/use-cases/users/update-user.usecase";
 import {DeleteUserUseCase} from "../../core/application/use-cases/users/delete-user.usecase";
@@ -17,7 +16,7 @@ import {GetUserByIdUseCase} from "../../core/application/use-cases/users/get-use
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Users, UserSettings, Letters, Matches, Reports, Messages]),
+        TypeOrmModule.forFeature([Users, UserSettings, Letters, Matches, Reports]),
         forwardRef(() => AuthModule),
     ],
     controllers: [UsersController],

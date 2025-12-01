@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
     MailOutlined, UserOutlined, CalendarOutlined,
     EditOutlined, SaveOutlined, CloseOutlined,
@@ -8,12 +8,14 @@ import {
 import { message } from 'antd';
 import '../../CSS/Profile.css';
 import api from '../../apis/AxiosInstance';
+import { UserContext } from '../../utils/userContext';
 
 interface UserProfile {
     id: string;
     username: string;
     email: string;
     gender: boolean;
+    avatar: string;
     letters: number;
     sentMatches: number;
     receivedMatches: number;
@@ -29,7 +31,7 @@ const ProfilePage = () => {
     const [editedUsername, setEditedUsername] = useState('');
     const [editedGender, setEditedGender] = useState(true);
     const [particles, setParticles] = useState<{ id: number, x: number, y: number, delay: number }[]>([]);
-
+    const { reloadUser } = useContext(UserContext);
     useEffect(() => {
         // Tạo particle animation
         const newParticles = Array.from({ length: 15 }, (_, i) => ({
@@ -61,11 +63,6 @@ const ProfilePage = () => {
         }
     };
 
-    const calculateDaysJoined = (createdAt: string) => {
-        const diff = new Date().getTime() - new Date(createdAt).getTime();
-        return Math.floor(diff / (1000 * 60 * 60 * 24));
-    };
-
     const formatDate = (dateString: string) =>
         new Date(dateString).toLocaleDateString('vi-VN', {
             year: 'numeric',
@@ -83,11 +80,24 @@ const ProfilePage = () => {
         setIsEditing(false);
     };
 
-    const handleSave = () => {
-        if (profile) {
-            setProfile({ ...profile, username: editedUsername, gender: editedGender });
-            message.success('Cập nhật thông tin thành công!');
+    const handleSave = async () => {
+        try {
+            if (!profile) return;
+
+            const body = {
+                username: editedUsername,
+                gender: editedGender,
+            };
+
+            const res = await api.patch(`/users/${profile.id}`, body);
+            setProfile(res.data);
+            await reloadUser();
+            message.success("Cập nhật thông tin thành công!");
             setIsEditing(false);
+
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            message.error("Cập nhật thất bại");
         }
     };
 
@@ -113,7 +123,7 @@ const ProfilePage = () => {
                     <div className="profile-avatar-section">
                         <div className="avatar-wrapper-profile">
                             <img
-                                src="https://res.cloudinary.com/dshe78dng/image/upload/v1764082592/user_male_default_avatar-removebg-preview_dhix5q.png"
+                                src={profile.avatar}
                                 alt="Avatar"
                                 className="profile-avatar"
                             />
@@ -125,7 +135,7 @@ const ProfilePage = () => {
                             <p className="profile-email">{profile.email}</p>
                             <div className="profile-badge">
                                 <span className={`badge ${profile.isAdmin ? 'admin-badge' : 'member-badge'}`}>
-                                    {profile.isAdmin ? '👑 Quản trị viên' : '✨ Thành viên'}
+                                    {profile.isAdmin ? 'Quản trị viên' : 'Thành viên'}
                                 </span>
                             </div>
                         </div>

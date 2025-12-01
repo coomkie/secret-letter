@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SendOutlined, HeartOutlined, SafetyOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import '../../CSS/Home.css';
 import { useTranslation } from 'react-i18next';
-const HomePage = () => {
+const LandingPage = () => {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [floatingLetters, setFloatingLetters] = useState<Array<{ id: number, x: number, y: number, delay: number }>>([]);
     const { t } = useTranslation();
@@ -56,7 +56,8 @@ const HomePage = () => {
     ];
 
     return (
-        <div className="home-page-2003">
+        <div className="home-page">
+            HIIIIIIIIIIII
             {/* Floating Letters Background */}
             {floatingLetters.map(letter => (
                 <div
@@ -131,13 +132,13 @@ const HomePage = () => {
                         transform: `translate(${mousePosition.x * -0.3}px, ${mousePosition.y * -0.3}px)`
                     }}
                 >
-                    <div className="enveloper-container">
-                        <div className="enveloper">
-                            <div className="enveloper-flap"></div>
-                            <div className="enveloper-body"></div>
+                    <div className="envelope-container">
+                        <div className="envelope">
+                            <div className="envelope-flap"></div>
+                            <div className="envelope-body"></div>
                             <div className="letter-peek"></div>
                         </div>
-                        <div className="enveloper-glow"></div>
+                        <div className="envelope-glow"></div>
                     </div>
                 </div>
             </section>
@@ -219,4 +220,4 @@ const HomePage = () => {
     );
 };
 
-export default HomePage;
+export default LandingPage;

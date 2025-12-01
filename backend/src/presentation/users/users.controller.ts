@@ -57,7 +57,6 @@ export class UsersController {
 
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('admin')
     UpdateUser(@Param('id') id: string, @Body() body: UpdateUserRequest) {
         return this.updateUserUseCase.execute(id, body);
     }

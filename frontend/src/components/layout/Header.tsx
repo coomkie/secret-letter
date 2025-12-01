@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Badge, Dropdown, Avatar, MenuProps } from 'antd';
 import { MailOutlined, SendOutlined, InboxOutlined, UserOutlined, GlobalOutlined, SolutionOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import enFlag from '../../assets/eng_flag.jpg';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { MyJwtPayload } from '../../types/auth';
+import { UserContext } from '../../utils/userContext';
 type Mood = 'HAPPY' | 'SAD' | 'ANGRY' | 'NEUTRAL';
 
 const Header: React.FC = () => {
@@ -19,26 +20,34 @@ const Header: React.FC = () => {
     const savedLang = localStorage.getItem('lang') as 'vi' | 'en' | null;
     const [currentLanguage, setCurrentLanguage] = useState<'vi' | 'en'>(savedLang || 'vi');
     const [particles, setParticles] = useState<Array<{ id: number; left: number; delay: number }>>([]);
-    const [currentUser, setCurrentUser] = useState<MyJwtPayload | null>(null);
+    const { user, reloadUser } = useContext(UserContext);
 
     const handleLogin = () => {
         navigate('/auth');
     }
     const handleLogout = () => {
         localStorage.removeItem("token");
-        navigate("/home");
+        navigate("/auth");
     };
     const handleHomePage = () => {
         navigate('/home');
+    }
+    const handleSendLetter = () => {
+        navigate('/send');
+    }
+    const handleViewLetterSent = () => {
+        navigate('/letter-sent');
+    }
+    const handleViewInbox = () => {
+        navigate('/inbox');
     }
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
             try {
                 const decoded = jwtDecode<MyJwtPayload>(token);
-                setCurrentUser(decoded);
             } catch (err) {
-                setCurrentUser(null);
+                console.log("Invalid token", err);
             }
         }
         setIsAuthenticated(!!token);
@@ -161,19 +170,19 @@ const Header: React.FC = () => {
 
                         {isAuthenticated && (
                             <>
-                                <div className="nav-item">
+                                <div className="nav-item" onClick={handleSendLetter}>
                                     <SendOutlined />
                                     <span>{t('send_letter')}</span>
                                 </div>
 
-                                <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={handleViewInbox}>
                                     <Badge count={unreadCount} className="custom-badge">
                                         <MailOutlined style={{ fontSize: '18px' }} />
                                     </Badge>
                                     <span>{t('inbox')}</span>
                                 </div>
 
-                                <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={handleViewLetterSent}>
                                     <Badge count={unreadCount} className="custom-badge">
                                         <InboxOutlined style={{ fontSize: '18px' }} />
                                     </Badge>
@@ -187,7 +196,7 @@ const Header: React.FC = () => {
                     <div className="user-section">
 
                         {/* Mood selector (only when logged in) */}
-                        {isAuthenticated && (
+                        {/* {isAuthenticated && (
                             <div className="mood-selector">
                                 {(['HAPPY', 'SAD', 'ANGRY', 'NEUTRAL'] as Mood[]).map(mood => (
                                     <button
@@ -202,7 +211,7 @@ const Header: React.FC = () => {
                                     </button>
                                 ))}
                             </div>
-                        )}
+                        )} */}
 
                         {/* Avatar OR Login/Register */}
                         {isAuthenticated ? (
@@ -210,7 +219,7 @@ const Header: React.FC = () => {
                                 <div className="avatar-wrapper">
                                     <img
                                         className="user-avatar"
-                                        src="https://res.cloudinary.com/dshe78dng/image/upload/v1764082592/user_male_default_avatar-removebg-preview_dhix5q.png"
+                                        src={user?.avatar}
                                         alt=""
                                     />
                                     <span className="avatar-status" style={{ background: 'rgb(42 232 47)' }} />
@@ -222,7 +231,7 @@ const Header: React.FC = () => {
                                 <button className="register-btn">{t('register')}</button>
                             </div>
                         )}
-                        <div style={{ fontSize: '14px' }}>{currentUser?.username}</div>
+                        <div style={{ fontSize: '14px' }}>{user?.username}</div>
                         {/* Language selector (always shown) */}
                         <Dropdown
                             menu={{
@@ -250,5 +259,4 @@ const Header: React.FC = () => {
         </>
     );
 };
-
 export default Header;
