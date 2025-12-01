@@ -4,7 +4,6 @@ import {Users} from "./src/core/domain/entities/user.entity";
 import {UserSettings} from "./src/core/domain/entities/user-setting.entity";
 import {Letters} from "./src/core/domain/entities/letter.entity";
 import {Reports} from "./src/core/domain/entities/report.entity";
-import {Messages} from "./src/core/domain/entities/message.entity";
 import {Matches} from "./src/core/domain/entities/match.entity";
 
 config();
@@ -16,7 +15,7 @@ export const AppDataSource = new DataSource({
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || '123456',
     database: process.env.DB_DATABASE || 'secret-letter',
-    entities: [Users, UserSettings, Letters, Matches, Reports, Messages],
+    entities: [Users, UserSettings, Letters, Matches, Reports],
     migrations: [__dirname + '/src/infra/database/migrations/*{.ts,.js}'],
     synchronize: false,
 });

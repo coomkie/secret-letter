@@ -7,7 +7,7 @@ import {Matches} from "./match.entity";
 @Entity()
 export class Letters extends BaseEntity {
 
-    @Column('text',{nullable: false})
+    @Column('text', { nullable: false })
     content: string;
 
     @Column({
@@ -18,12 +18,14 @@ export class Letters extends BaseEntity {
     })
     mood: Mood;
 
-    @Column({default: false})
+    @Column({ default: false })
     isSent: boolean;
 
-    @ManyToOne(() => Users, user => user.letters, {onDelete: "CASCADE"})
+    @ManyToOne(() => Users, user => user.letters, { onDelete: "CASCADE" })
     user: Users;
 
-    @OneToOne(() => Matches, match => match.letter)
+    @ManyToOne(() => Matches, match => match.letters, {
+        onDelete: 'CASCADE'
+    })
     match: Matches;
 }

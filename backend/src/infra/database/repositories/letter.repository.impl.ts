@@ -1,6 +1,6 @@
-import {Injectable} from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Repository, ILike} from 'typeorm';
+import {Repository} from 'typeorm';
 import {ILettersRepository} from "../../../core/application/interfaces/repositories/letter.repository";
 import {Letters} from "../../../core/domain/entities/letter.entity";
 import {Users} from "../../../core/domain/entities/user.entity";
@@ -11,6 +11,8 @@ import {
     GetAllLetterReceivedRequest
 } from "../../../core/application/dtos/letters/request/get-all-letter-received-request";
 import {GetAllLetterSentRequest} from "../../../core/application/dtos/letters/request/get-all-letter-sent-request";
+import {ReplyLetterRequest} from "src/core/application/dtos/letters/request/reply-letter.-request";
+import {SendRandomLetterRequest} from "src/core/application/dtos/letters/request/send-letter-random-request";
 
 @Injectable()
 export class LettersRepositoryImpl implements ILettersRepository {
@@ -24,27 +26,143 @@ export class LettersRepositoryImpl implements ILettersRepository {
     ) {
     }
 
+    /**
+     * USER SEND RANDOM LETTER
+     */
+    async createRandomLetter(
+        senderId: string,
+        data: SendRandomLetterRequest
+    ): Promise<Letters> {
+        // 1. Lấy thông tin sender
+        const sender = await this.usersRepo.findOne({
+            where: { id: senderId },
+            relations: ['settings'],
+        });
+        if (!sender) throw new NotFoundException("Sender not found");
 
-    async createLetter(data: CreateLetterRequest): Promise<Letters> {
-        const user = await this.usersRepo.findOne({
-            where: {id: data.userId}
+        // 2. Lấy mood sender (JSONB chỉ 1 phần tử)
+        const senderMood = sender.settings?.preferredMoods?.[0] || 'NEUTRAL';
+
+        // 3. Hàm anti-swiping filter: không gửi cùng 1 receiver trong 24h
+        const noRecentMatchFilter = (qb: any) => {
+            const subQuery = qb.subQuery()
+                .select("1")
+                .from(Matches, "m")
+                .where("m.senderId = :senderId", { senderId })
+                .andWhere("m.receiverId = u.id")
+                .andWhere("m.created_at >= NOW() - INTERVAL '24 HOURS'")
+                .getQuery();
+            return `NOT EXISTS (${subQuery})`;
+        };
+
+        // 4. Step 1: tìm user mood trùng sender
+        let recipient = await this.usersRepo
+            .createQueryBuilder("u")
+            .leftJoinAndSelect("u.settings", "settings")
+            .where("u.id != :senderId", { senderId })
+            .andWhere("u.isAdmin = false")
+            .andWhere(":mood = ANY (SELECT jsonb_array_elements_text(settings.preferredMoods))", { mood: senderMood })
+            .andWhere(noRecentMatchFilter)
+            .orderBy("RANDOM()")
+            .getOne();
+
+        // 5. Step 2: fallback sang NEUTRAL
+        if (!recipient) {
+            recipient = await this.usersRepo
+                .createQueryBuilder("u")
+                .leftJoinAndSelect("u.settings", "settings")
+                .where("u.id != :senderId", { senderId })
+                .andWhere("u.isAdmin = false")
+                .andWhere(":neutral = ANY (SELECT jsonb_array_elements_text(settings.preferredMoods))", { neutral: 'NEUTRAL' })
+                .andWhere(noRecentMatchFilter)
+                .orderBy("RANDOM()")
+                .getOne();
+        }
+
+        // 6. Step 3: fallback bất kỳ non-admin nào
+        if (!recipient) {
+            recipient = await this.usersRepo
+                .createQueryBuilder("u")
+                .leftJoinAndSelect("u.settings", "settings")
+                .where("u.id != :senderId", { senderId })
+                .andWhere("u.isAdmin = false")
+                .andWhere(noRecentMatchFilter)
+                .orderBy("RANDOM()")
+                .getOne();
+        }
+
+        // 7. Nếu vẫn không tìm được → throw (rất hiếm xảy ra)
+        if (!recipient) throw new Error("No suitable recipient available");
+
+        // 8. Tạo match
+        const match = this.matchesRepo.create({
+            sender,
+            receiver: recipient,
+        });
+        await this.matchesRepo.save(match);
+
+        // 9. Tạo và lưu letter
+        const letter = this.lettersRepo.create({
+            content: data.content,
+            mood: data.mood,
+            user: sender,
+            match,
+            isSent: true,
         });
 
-        const match = data.matchId
-            ? await this.matchesRepo.findOne({where: {id: data.matchId}})
-            : null;
+        return this.lettersRepo.save(letter);
+    }
+
+
+
+    /**
+     * USER REPLIES INSIDE MATCH → ADD NEW LETTER
+     */
+    async replyLetter(senderId: string, data: ReplyLetterRequest): Promise<Letters> {
+        const match = await this.matchesRepo.findOne({
+            where: {id: data.matchId},
+            relations: ['sender', 'receiver'],
+        });
+
+        if (!match) throw new NotFoundException("Match not found");
+
+        // Validate user belongs to match
+        if (match.sender.id !== senderId && match.receiver.id !== senderId) {
+            throw new BadRequestException("User not part of this match");
+        }
+
+        const sender = await this.usersRepo.findOne({where: {id: senderId}});
+
+        const letter = this.lettersRepo.create({
+            content: data.content,
+            user: sender,
+            match,
+            isSent: true,
+        } as Partial<Letters>);
+
+        return this.lettersRepo.save(letter);
+    }
+
+    /**
+     * CREATE UNSENT LETTER (draft)
+     */
+    async createLetter(data: CreateLetterRequest): Promise<Letters> {
+        const user = await this.usersRepo.findOne({where: {id: data.userId}});
 
         const entity = this.lettersRepo.create({
             content: data.content,
             mood: data.mood,
             isSent: false,
             user,
-            match,
+            match: data.matchId ? {id: data.matchId} as Matches : null,
         } as Partial<Letters>);
 
         return this.lettersRepo.save(entity);
     }
 
+    /**
+     * ADMIN GET ALL LETTERS
+     */
     async getAllLetterAdmin(req: GetAllLetterAdminRequest) {
         const page = Number(req.page) || 1;
         const pageSize = Number(req.pageSize) || 10;
@@ -57,46 +175,10 @@ export class LettersRepositoryImpl implements ILettersRepository {
         if (req.userId) qb.andWhere('user.id = :userId', {userId: req.userId});
         if (req.matchId) qb.andWhere('match.id = :matchId', {matchId: req.matchId});
         if (req.mood) qb.andWhere('letters.mood = :mood', {mood: req.mood});
-        if (req.search)
-            qb.andWhere('letters.content ILIKE :search', {search: `%${req.search}%`});
-        if (req.isSent !== undefined)
-            qb.andWhere('letters.isSent = :isSent', {isSent: req.isSent});
+        if (req.search) qb.andWhere('letters.content ILIKE :search', {search: `%${req.search}%`});
+        if (req.isSent !== undefined) qb.andWhere('letters.isSent = :isSent', {isSent: req.isSent});
 
-        const sortBy = req.sortBy ?? 'letters.createdAt';
-
-        const sortColumn = sortBy.includes('.') ? sortBy : `letters.${sortBy}`;
-
-        qb.orderBy(sortColumn, req.sortOrder ?? 'DESC')
-            .skip((page - 1) * pageSize)
-            .take(pageSize);
-
-        const [items, total] = await qb.getManyAndCount();
-
-        return {
-            items,
-            total,
-            page,
-            pageSize,
-        };
-    }
-
-    async getAllLetterReceived(userId: string, req: GetAllLetterReceivedRequest) {
-        const page = Number(req.page) || 1;
-        const pageSize = Number(req.pageSize) || 10;
-
-        const qb = this.lettersRepo
-            .createQueryBuilder('letters')
-            .leftJoinAndSelect('letters.user', 'user')
-            .leftJoinAndSelect('letters.match', 'match')
-            .where('letters.isSent = true')
-            .andWhere('match.receiverId = :userId', {userId});
-
-        if (req.mood)
-            qb.andWhere('letters.mood = :mood', {mood: req.mood});
-
-        const sortBy = req.sortBy ?? 'letters.createdAt';
-
-        const sortColumn = sortBy.includes('.') ? sortBy : `letters.${sortBy}`;
+        const sortColumn = req.sortBy?.includes('.') ? req.sortBy : `letters.${req.sortBy || 'createdAt'}`;
 
         qb.orderBy(sortColumn, req.sortOrder ?? 'DESC')
             .skip((page - 1) * pageSize)
@@ -107,22 +189,55 @@ export class LettersRepositoryImpl implements ILettersRepository {
         return {items, total, page, pageSize};
     }
 
+    /**
+     * INBOX (letters user RECEIVED inside matches user is part of)
+     */
+    async getAllLetterReceived(userId: string, req: GetAllLetterReceivedRequest) {
+        const page = Number(req.page) || 1;
+        const pageSize = Number(req.pageSize) || 10;
+
+        const qb = this.lettersRepo
+            .createQueryBuilder('letters')
+            .leftJoinAndSelect('letters.user', 'letterSender')
+            .leftJoinAndSelect('letters.match', 'match')
+            .leftJoinAndSelect('match.sender', 'sender')
+            .leftJoinAndSelect('match.receiver', 'receiver')
+            .where('(match.senderId = :id OR match.receiverId = :id)', {id: userId})
+            .andWhere('letterSender.id != :id', {id: userId}) // received ≠ user sent
+            .andWhere('letters.isSent = true');
+
+        if (req.mood) qb.andWhere('letters.mood = :mood', {mood: req.mood});
+
+        const sortColumn = req.sortBy?.includes('.') ? req.sortBy : `letters.${req.sortBy || 'createdAt'}`;
+
+        qb.orderBy(sortColumn, req.sortOrder ?? 'DESC')
+            .skip((page - 1) * pageSize)
+            .take(pageSize);
+
+        const [items, total] = await qb.getManyAndCount();
+
+        return {items, total, page, pageSize};
+    }
+
+    /**
+     * SENT LETTERS (letters user CREATED)
+     */
     async getAllLetterSent(userId: string, req: GetAllLetterSentRequest) {
         const page = Number(req.page) || 1;
         const pageSize = Number(req.pageSize) || 10;
 
         const qb = this.lettersRepo
             .createQueryBuilder('letters')
-            .leftJoinAndSelect('letters.user', 'user')
+            .leftJoinAndSelect('letters.user', 'sender')
             .leftJoinAndSelect('letters.match', 'match')
-            .where('letters.user.id = :userId', {userId});
+            .leftJoinAndSelect('match.receiver', 'receiver')
+            .leftJoinAndSelect('match.sender', 'matchSender')
+            .where('letters.userId = :id', {id: userId}) // sent = user is creator
+            .andWhere('letters.isSent = true');
 
-        if (req.mood)
-            qb.andWhere('letters.mood = :mood', {mood: req.mood});
+        if (req.mood) qb.andWhere('letters.mood = :mood', {mood: req.mood});
 
-        const sortBy = req.sortBy ?? 'letters.createdAt';
-
-        const sortColumn = sortBy.includes('.') ? sortBy : `letters.${sortBy}`;
+        const sortColumn = req.sortBy?.includes('.') ? req.sortBy : `letters.${req.sortBy || 'createdAt'}`;
 
         qb.orderBy(sortColumn, req.sortOrder ?? 'DESC')
             .skip((page - 1) * pageSize)

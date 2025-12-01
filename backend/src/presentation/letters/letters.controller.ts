@@ -23,6 +23,10 @@ import {RolesGuard} from "../../infra/auth/roles.guard";
 import {ApiBearerAuth, ApiTags} from "@nestjs/swagger";
 import {GetLetterByUserIdUseCase} from "../../core/application/use-cases/letters/get-letter-by-userId.usecase";
 import {Roles} from "../../infra/auth/roles.decorator";
+import {SendRandomLetterUseCase} from "../../core/application/use-cases/letters/send-radom-letter.usecase";
+import {ReplyLetterUseCase} from "../../core/application/use-cases/letters/reply-letter.usecase";
+import {SendRandomLetterRequest} from "../../core/application/dtos/letters/request/send-letter-random-request";
+import {ReplyLetterRequest} from "../../core/application/dtos/letters/request/reply-letter.-request";
 
 @ApiBearerAuth('jwt')
 @ApiTags('Letters')
@@ -31,6 +35,8 @@ import {Roles} from "../../infra/auth/roles.decorator";
 export class LettersController {
     constructor(
         private readonly createLetterUseCase: CreateLetterUseCase,
+        private readonly sendRandomLetterUseCase: SendRandomLetterUseCase,
+        private readonly replyLetterUseCase: ReplyLetterUseCase,
         private readonly getAllLetterAdminUseCase: GetAllLetterAdminUseCase,
         private readonly getAllLetterSentUseCase: GetAllLetterSentUseCase,
         private readonly getAllLetterReceivedUseCase: GetAllLetterReceivedUseCase,
@@ -42,6 +48,16 @@ export class LettersController {
     @Post()
     createLetter(@Body() body: CreateLetterRequest) {
         return this.createLetterUseCase.execute(body);
+    }
+
+    @Post('random')
+    sendRandomLetter(@Body() body: SendRandomLetterRequest, @Request() req: any) {
+        return this.sendRandomLetterUseCase.execute(req.user.userId, body);
+    }
+
+    @Post('reply')
+    replyLetter(@Body() body: ReplyLetterRequest, @Request() req: any) {
+        return this.replyLetterUseCase.execute(req.user.userId, body);
     }
 
     @Get('admin')

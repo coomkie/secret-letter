@@ -9,7 +9,6 @@ import {SeedModule} from "./infra/database/seed/seed.module";
 import {UserSettingsModule} from "./presentation/user-settings/user-settings.module";
 import {LettersModule} from './presentation/letters/letters.module';
 import {MatchesModule} from "./presentation/matches/matches.module";
-import {MessagesModule} from "./presentation/messages/messages.module";
 
 @Module({
     imports: [
@@ -32,7 +31,6 @@ import {MessagesModule} from "./presentation/messages/messages.module";
         SeedModule,
         LettersModule,
         MatchesModule,
-        MessagesModule,
     ],
     controllers: [AppController],
     providers: [AppService],

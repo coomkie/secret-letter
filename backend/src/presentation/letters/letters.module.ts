@@ -11,6 +11,8 @@ import {GetAllLetterReceivedUseCase} from "../../core/application/use-cases/lett
 import {GetAllLetterSentUseCase} from "../../core/application/use-cases/letters/get-all-letter-sent.usecase";
 import {GetLetterByUserIdUseCase} from "../../core/application/use-cases/letters/get-letter-by-userId.usecase";
 import {LettersRepositoryImpl} from "../../infra/database/repositories/letter.repository.impl";
+import {SendRandomLetterUseCase} from "../../core/application/use-cases/letters/send-radom-letter.usecase";
+import {ReplyLetterUseCase} from "../../core/application/use-cases/letters/reply-letter.usecase";
 
 @Module({
     imports: [
@@ -19,6 +21,8 @@ import {LettersRepositoryImpl} from "../../infra/database/repositories/letter.re
     controllers: [LettersController],
     providers: [
         CreateLetterUseCase,
+        SendRandomLetterUseCase,
+        ReplyLetterUseCase,
         DeleteLetterUseCase,
         GetAllLetterAdminUseCase,
         GetAllLetterReceivedUseCase,
@@ -31,6 +35,8 @@ import {LettersRepositoryImpl} from "../../infra/database/repositories/letter.re
     ],
     exports: [
         CreateLetterUseCase,
+        SendRandomLetterUseCase,
+        ReplyLetterUseCase,
         DeleteLetterUseCase,
         GetAllLetterAdminUseCase,
         GetAllLetterReceivedUseCase,

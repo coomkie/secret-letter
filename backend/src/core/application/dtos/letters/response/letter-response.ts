@@ -17,7 +17,7 @@ export class LettersResponse {
         this.content = entity.content;
         this.mood = entity.mood;
         this.isSent = entity.isSent;
-        this.userId = entity.user.id;
+        this.userId = entity.user?.id ?? null;
         this.matchId = entity.match.id;
         this.createdAt = entity.created_at;
         this.updatedAt = entity.updated_at;

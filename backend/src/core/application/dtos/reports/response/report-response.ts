@@ -4,7 +4,6 @@ import {Reports} from "../../../../domain/entities/report.entity";
 export class ReportsResponse {
     id: string;
     userId: string;
-    messageId: string;
     letterId: string;
     reason: string;
     status: ReportStatus;
@@ -14,7 +13,6 @@ export class ReportsResponse {
     constructor(entity: Reports) {
         this.id = entity.id;
         this.userId = entity.reporter.id;
-        this.messageId = entity.targetMessage.id;
         this.letterId = entity.targetLetter.id;
         this.reason = entity.reason;
         this.status = entity.status;

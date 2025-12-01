@@ -20,6 +20,7 @@ export class MeUseCase {
             id: user.id,
             username: user.username,
             email: user.email,
+            avatar: user.avatar,
             gender: user.gender,
             letters: user.letters.length,
             sentMatches: user.sentMatches.length,
