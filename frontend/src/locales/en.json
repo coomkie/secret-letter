@@ -200,5 +200,14 @@
   "setting_desc_1": "Usage tips",
   "setting_desc_2": "Enable Random Letters to connect with more people",
   "setting_desc_3": "Select a preferred mood to receive letters that match your emotions",
-  "setting_desc_4": "Enable notifications so you never miss important letters"
+  "setting_desc_4": "Enable notifications so you never miss important letters",
+  "back": "Back",
+  "reply": "Reply letter",
+  "reply_to": "Response to",
+  "write_your_reply": "Write your response",
+  "send_reply": "Send response",
+  "waiting_reply": "Waiting for your response",
+  "root_mail": "Original",
+  "reply_mail_title": "Your response will be sent privately.",
+  "reply_online": "Direct response"
 }
