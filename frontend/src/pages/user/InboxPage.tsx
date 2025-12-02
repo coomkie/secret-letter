@@ -276,7 +276,7 @@ const InboxPage: React.FC = () => {
                                         >
                                             <Option value="all">{t('all')}</Option>
                                             {allSenders.map(sender => (
-                                                <Option key={sender.id} value={sender.username}>
+                                                <Option key={sender.id} value={sender.id}>
                                                     {sender.username}
                                                 </Option>
                                             ))}

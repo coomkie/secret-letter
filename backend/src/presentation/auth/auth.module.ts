@@ -10,11 +10,15 @@ import {AuthServiceImpl} from "../../infra/auth/auth.service.impl";
 import {UsersModule} from "../users/users.module";
 import {RegisterUseCase} from "../../core/application/use-cases/auth/register-usecase";
 import {MeUseCase} from "../../core/application/use-cases/auth/me-usecase";
+import {LettersModule} from "../letters/letters.module";
+import {MatchesModule} from "../matches/matches.module";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Users]),
         forwardRef(() => UsersModule),
+        forwardRef(() => LettersModule),
+        forwardRef(() => MatchesModule),
         JwtModule.registerAsync({
             inject: [ConfigService],
             useFactory: (config: ConfigService): JwtModuleOptions => ({

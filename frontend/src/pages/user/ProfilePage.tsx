@@ -219,7 +219,7 @@ const ProfilePage = () => {
                                 <p>{formatDate(profile.created_at)}</p>
                             </div>
                         </div>
-                        <div className="timeline-item">
+                        {/* <div className="timeline-item">
                             <div className="timeline-dot"></div>
                             <div className="timeline-content">
                                 <h4>Đã gửi {profile.sentMatches} thư</h4>
@@ -232,7 +232,7 @@ const ProfilePage = () => {
                                 <h4>Đã nhận {profile.receivedMatches} thư</h4>
                                 <p>Từ những tâm hồn đồng điệu</p>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

@@ -35,7 +35,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
     ): Promise<Letters> {
         // 1. Lấy thông tin sender
         const sender = await this.usersRepo.findOne({
-            where: { id: senderId },
+            where: {id: senderId},
             relations: ['settings'],
         });
         if (!sender) throw new NotFoundException("Sender not found");
@@ -48,7 +48,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
             const subQuery = qb.subQuery()
                 .select("1")
                 .from(Matches, "m")
-                .where("m.senderId = :senderId", { senderId })
+                .where("m.senderId = :senderId", {senderId})
                 .andWhere("m.receiverId = u.id")
                 .andWhere("m.created_at >= NOW() - INTERVAL '24 HOURS'")
                 .getQuery();
@@ -59,32 +59,31 @@ export class LettersRepositoryImpl implements ILettersRepository {
         let recipient = await this.usersRepo
             .createQueryBuilder("u")
             .leftJoinAndSelect("u.settings", "settings")
-            .where("u.id != :senderId", { senderId })
+            .where("u.id != :senderId", {senderId})
             .andWhere("u.isAdmin = false")
-            .andWhere(":mood = ANY (SELECT jsonb_array_elements_text(settings.preferredMoods))", { mood: senderMood })
+            .andWhere("settings.allowRandomMessages = true")
+            .andWhere(":mood = ANY (SELECT jsonb_array_elements_text(settings.preferredMoods))", {mood: senderMood})
             .andWhere(noRecentMatchFilter)
             .orderBy("RANDOM()")
             .getOne();
 
-        // 5. Step 2: fallback sang NEUTRAL
         if (!recipient) {
             recipient = await this.usersRepo
                 .createQueryBuilder("u")
                 .leftJoinAndSelect("u.settings", "settings")
-                .where("u.id != :senderId", { senderId })
+                .where("u.id != :senderId", {senderId})
                 .andWhere("u.isAdmin = false")
-                .andWhere(":neutral = ANY (SELECT jsonb_array_elements_text(settings.preferredMoods))", { neutral: 'NEUTRAL' })
+                .andWhere(":neutral = ANY (SELECT jsonb_array_elements_text(settings.preferredMoods))", {neutral: 'NEUTRAL'})
                 .andWhere(noRecentMatchFilter)
                 .orderBy("RANDOM()")
                 .getOne();
         }
 
-        // 6. Step 3: fallback bất kỳ non-admin nào
         if (!recipient) {
             recipient = await this.usersRepo
                 .createQueryBuilder("u")
                 .leftJoinAndSelect("u.settings", "settings")
-                .where("u.id != :senderId", { senderId })
+                .where("u.id != :senderId", {senderId})
                 .andWhere("u.isAdmin = false")
                 .andWhere(noRecentMatchFilter)
                 .orderBy("RANDOM()")
@@ -112,7 +111,6 @@ export class LettersRepositoryImpl implements ILettersRepository {
 
         return this.lettersRepo.save(letter);
     }
-
 
 
     /**
@@ -178,7 +176,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
         if (req.search) qb.andWhere('letters.content ILIKE :search', {search: `%${req.search}%`});
         if (req.isSent !== undefined) qb.andWhere('letters.isSent = :isSent', {isSent: req.isSent});
 
-        const sortColumn = req.sortBy?.includes('.') ? req.sortBy : `letters.${req.sortBy || 'createdAt'}`;
+        const sortColumn = req.sortBy?.includes('.') ? req.sortBy : `letters.${req.sortBy || 'created_at'}`;
 
         qb.orderBy(sortColumn, req.sortOrder ?? 'DESC')
             .skip((page - 1) * pageSize)
@@ -198,26 +196,41 @@ export class LettersRepositoryImpl implements ILettersRepository {
 
         const qb = this.lettersRepo
             .createQueryBuilder('letters')
-            .leftJoinAndSelect('letters.user', 'letterSender')
+            .leftJoinAndSelect('letters.user', 'sender')
             .leftJoinAndSelect('letters.match', 'match')
-            .leftJoinAndSelect('match.sender', 'sender')
+            .leftJoinAndSelect('match.sender', 'matchSender')
             .leftJoinAndSelect('match.receiver', 'receiver')
             .where('(match.senderId = :id OR match.receiverId = :id)', {id: userId})
-            .andWhere('letterSender.id != :id', {id: userId}) // received ≠ user sent
+            .andWhere('sender.id != :id', {id: userId})
             .andWhere('letters.isSent = true');
 
+        if (req.search) {
+            qb.andWhere('sender.id = :sid', {sid: req.search});
+        }
         if (req.mood) qb.andWhere('letters.mood = :mood', {mood: req.mood});
 
-        const sortColumn = req.sortBy?.includes('.') ? req.sortBy : `letters.${req.sortBy || 'createdAt'}`;
+        if (req.startDate)
+            qb.andWhere('letters.created_at >= :startDate', {startDate: req.startDate});
+        if (req.endDate)
+            qb.andWhere('letters.created_at <= :endDate', {endDate: req.endDate});
 
-        qb.orderBy(sortColumn, req.sortOrder ?? 'DESC')
+        const allowed = new Set(['created_at', 'updated_at', 'mood']);
+        let sortColumn = 'letters.created_at';
+
+        if (req.sortBy?.includes('.')) {
+            sortColumn = req.sortBy; // ví dụ: sender.username
+        } else if (req.sortBy && allowed.has(req.sortBy)) {
+            sortColumn = `letters.${req.sortBy}`;
+        }
+
+        qb.orderBy(sortColumn, (req.sortOrder ?? 'DESC') as 'ASC' | 'DESC')
             .skip((page - 1) * pageSize)
             .take(pageSize);
 
         const [items, total] = await qb.getManyAndCount();
-
         return {items, total, page, pageSize};
     }
+
 
     /**
      * SENT LETTERS (letters user CREATED)
@@ -228,18 +241,31 @@ export class LettersRepositoryImpl implements ILettersRepository {
 
         const qb = this.lettersRepo
             .createQueryBuilder('letters')
-            .leftJoinAndSelect('letters.user', 'sender')
+            .leftJoinAndSelect('letters.user', 'sender')            // alias sender
             .leftJoinAndSelect('letters.match', 'match')
             .leftJoinAndSelect('match.receiver', 'receiver')
             .leftJoinAndSelect('match.sender', 'matchSender')
-            .where('letters.userId = :id', {id: userId}) // sent = user is creator
+            .where('letters.userId = :id', {id: userId})
             .andWhere('letters.isSent = true');
+
+        if (req.search) {
+            qb.andWhere('receiver.id = :receiverId', {receiverId: req.search});
+        }
 
         if (req.mood) qb.andWhere('letters.mood = :mood', {mood: req.mood});
 
-        const sortColumn = req.sortBy?.includes('.') ? req.sortBy : `letters.${req.sortBy || 'createdAt'}`;
+        if (req.startDate) {
+            qb.andWhere('letters.created_at >= :startDate', {startDate: req.startDate});
+        }
+        if (req.endDate) {
+            qb.andWhere('letters.created_at <= :endDate', {endDate: req.endDate});
+        }
 
-        qb.orderBy(sortColumn, req.sortOrder ?? 'DESC')
+        const sortBy = req.sortBy?.includes('.')
+            ? req.sortBy
+            : `letters.${req.sortBy || 'created_at'}`;
+
+        qb.orderBy(sortBy, req.sortOrder ?? 'DESC')
             .skip((page - 1) * pageSize)
             .take(pageSize);
 
@@ -247,6 +273,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
 
         return {items, total, page, pageSize};
     }
+
 
     async getLetterByUserId(id: string): Promise<Letters | null> {
         return this.lettersRepo.findOne({
@@ -257,5 +284,30 @@ export class LettersRepositoryImpl implements ILettersRepository {
 
     async deleteLetter(id: string): Promise<void> {
         await this.lettersRepo.delete(id);
+    }
+
+    count(options: any): Promise<number> {
+        return this.lettersRepo.count(options);
+    }
+
+    async countReceivedLetters(userId: string): Promise<number> {
+        return this.lettersRepo
+            .createQueryBuilder('letters')
+            .leftJoin('letters.match', 'match')
+            .where('(match.receiverId = :userId OR match.senderId = :userId)', {userId})
+            .andWhere('letters.user != :userId', {userId})
+            .andWhere('letters.isSent = true')
+            .getCount();
+    }
+
+
+    async countDistinctConnections(userId: string): Promise<number> {
+        const raw = await this.lettersRepo
+            .createQueryBuilder('letters')
+            .select('COUNT(DISTINCT letters.match)', 'count')
+            .where('letters.user = :userId', { userId })
+            .getRawOne();
+
+        return Number(raw.count);
     }
 }

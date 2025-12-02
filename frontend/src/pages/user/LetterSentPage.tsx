@@ -253,7 +253,7 @@ const LetterSentPage: React.FC = () => {
                                     >
                                         <Option value="all">{t('all')}</Option>
                                         {allReceivers.map(receiver => (
-                                            <Option key={receiver.id} value={receiver.username}>
+                                            <Option key={receiver.id} value={receiver.id}>
                                                 {receiver.username}
                                             </Option>
                                         ))}

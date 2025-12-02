@@ -1,6 +1,6 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import { Repository} from 'typeorm';
+import {Repository} from 'typeorm';
 import {IMatchesRepository} from "../../../core/application/interfaces/repositories/match.repository";
 import {Matches} from "../../../core/domain/entities/match.entity";
 import {Users} from "../../../core/domain/entities/user.entity";
@@ -17,6 +17,10 @@ export class MatchesRepositoryImpl implements IMatchesRepository {
         @InjectRepository(Users)
         private readonly usersRepo: Repository<Users>,
     ) {
+    }
+
+    count(options: any): Promise<number> {
+        return this.matchesRepo.count(options);
     }
 
     async createMatch(data: CreateMatchRequest): Promise<Matches> {
@@ -92,4 +96,5 @@ export class MatchesRepositoryImpl implements IMatchesRepository {
     async deleteMatch(id: string): Promise<void> {
         await this.matchesRepo.delete(id);
     }
+
 }

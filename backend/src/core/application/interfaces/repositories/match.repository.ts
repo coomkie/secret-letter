@@ -23,4 +23,6 @@ export interface IMatchesRepository {
     getMatchById(id: string): Promise<Matches | null>;
 
     deleteMatch(id: string): Promise<void>;
+
+    count(options: any): Promise<number>;
 }
