@@ -111,7 +111,7 @@
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border-radius: 24px;
-    padding: 32px 40px;
+    padding: 16px 40px;
     margin-bottom: 32px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
     display: flex;
@@ -241,7 +241,10 @@
 .letters-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 32px;
+    row-gap: 68px;
+    /* khoảng cách dọc lớn hơn */
+    column-gap: 32px;
+    /* khoảng cách ngang vẫn giữ */
     margin-bottom: 32px;
     padding: 60px 20px !important;
 }
@@ -815,5 +818,97 @@
 
     .filter-panel {
         padding: 0 20px 20px 20px;
+    }
+}
+
+/* Inbox.css */
+
+/* Unread letter indicator */
+.envelope-container.unread {
+    position: relative;
+}
+
+.envelope-container.unread::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 16px;
+    z-index: -1;
+    opacity: 0.3;
+    animation: glow-unread 2s ease-in-out infinite;
+}
+
+@keyframes glow-unread {
+
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.02);
+    }
+}
+
+.unread-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+    animation: pulse-badge 2s ease-in-out infinite;
+    letter-spacing: 0.5px;
+}
+
+@keyframes pulse-badge {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+}
+
+/* Unread dot on envelope */
+.envelope-container.unread .envelope-stamp::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 12px;
+    height: 12px;
+    background: #ef4444;
+    border: 2px solid white;
+    border-radius: 50%;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
     }
 }

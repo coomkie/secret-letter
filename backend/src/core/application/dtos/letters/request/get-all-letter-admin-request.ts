@@ -23,5 +23,5 @@ export class GetAllLetterAdminRequest extends PaginationRequest {
     @ApiPropertyOptional({ type: Boolean })
     @IsOptional()
     @IsBooleanString()
-    isSent?: string;
+    isRead?: string;
 }

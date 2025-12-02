@@ -7,7 +7,7 @@ import {
     Query,
     Body,
     UseGuards,
-    Request,
+    Request, Patch,
 } from '@nestjs/common';
 import {CreateLetterRequest} from '../../core/application/dtos/letters/request/create-letter-request';
 import {GetAllLetterAdminRequest} from '../../core/application/dtos/letters/request/get-all-letter-admin-request';
@@ -27,6 +27,8 @@ import {SendRandomLetterUseCase} from "../../core/application/use-cases/letters/
 import {ReplyLetterUseCase} from "../../core/application/use-cases/letters/reply-letter.usecase";
 import {SendRandomLetterRequest} from "../../core/application/dtos/letters/request/send-letter-random-request";
 import {ReplyLetterRequest} from "../../core/application/dtos/letters/request/reply-letter.-request";
+import {GetUnreadCountUseCase} from "../../core/application/use-cases/letters/get-unread-count.usecase";
+import {MarkAsReadUseCase} from "../../core/application/use-cases/letters/mark-as-read.usecase";
 
 @ApiBearerAuth('jwt')
 @ApiTags('Letters')
@@ -42,6 +44,8 @@ export class LettersController {
         private readonly getAllLetterReceivedUseCase: GetAllLetterReceivedUseCase,
         private readonly getLetterByUserIdUseCase: GetLetterByUserIdUseCase,
         private readonly deleteLetterUseCase: DeleteLetterUseCase,
+        private readonly getUnreadCountUseCase: GetUnreadCountUseCase,
+        private readonly markAsReadUseCase: MarkAsReadUseCase
     ) {
     }
 
@@ -58,6 +62,14 @@ export class LettersController {
     @Post('reply')
     replyLetter(@Body() body: ReplyLetterRequest, @Request() req: any) {
         return this.replyLetterUseCase.execute(req.user.userId, body);
+    }
+
+    @Get('unread-count')
+    @UseGuards(JwtAuthGuard)
+    async getUnreadCount(@Request() req: any) {
+        const userId = req.user.userId;
+        const count = await this.getUnreadCountUseCase.execute(userId);
+        return {count};
     }
 
     @Get('admin')
@@ -86,6 +98,13 @@ export class LettersController {
     @Get(':userId')
     getLetterById(@Param('userId') userId: string) {
         return this.getLetterByUserIdUseCase.execute(userId);
+    }
+
+    @Patch(':letterId/mark-as-read')
+    @UseGuards(JwtAuthGuard)
+    async markAsRead(@Param('letterId') letterId: string, @Request() req: any) {
+        await this.markAsReadUseCase.execute(letterId, req.user.userId);
+        return {success: true};
     }
 
     @Delete(':id')

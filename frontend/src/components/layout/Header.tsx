@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Badge, Dropdown, Avatar, MenuProps } from 'antd';
-import { MailOutlined, SendOutlined, InboxOutlined, UserOutlined, GlobalOutlined, SolutionOutlined } from '@ant-design/icons';
+import { MailOutlined, SendOutlined, InboxOutlined, UserOutlined, GlobalOutlined, SolutionOutlined, ExclamationCircleOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import '../../CSS/Header.css';
 import viFlag from '../../assets/vi_flag.jpg';
@@ -9,14 +9,15 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { MyJwtPayload } from '../../types/auth';
 import { UserContext } from '../../utils/userContext';
+import { useNotifications } from '../../hooks/useNotifications';
 type Mood = 'HAPPY' | 'SAD' | 'ANGRY' | 'NEUTRAL';
 
 const Header: React.FC = () => {
     const { t, i18n } = useTranslation();
+    const { hasNewLetter, unreadCount, clearNotification } = useNotifications();
     const navigate = useNavigate();
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [currentMood, setCurrentMood] = useState<Mood>('HAPPY');
-    const [unreadCount, setUnreadCount] = useState(2);
     const savedLang = localStorage.getItem('lang') as 'vi' | 'en' | null;
     const [currentLanguage, setCurrentLanguage] = useState<'vi' | 'en'>(savedLang || 'vi');
     const [particles, setParticles] = useState<Array<{ id: number; left: number; delay: number }>>([]);
@@ -39,8 +40,9 @@ const Header: React.FC = () => {
         navigate('/letter-sent');
     }
     const handleViewInbox = () => {
+        clearNotification();
         navigate('/inbox');
-    }
+    };
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -175,15 +177,16 @@ const Header: React.FC = () => {
                                     <span>{t('send_letter')}</span>
                                 </div>
 
+
                                 <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={handleViewInbox}>
-                                    <Badge count={unreadCount} className="custom-badge">
+                                    <Badge count={hasNewLetter ? <ExclamationCircleFilled className='warning-icon' /> : 0} className="custom-badge">
                                         <MailOutlined style={{ fontSize: '18px' }} />
                                     </Badge>
                                     <span>{t('inbox')}</span>
                                 </div>
 
                                 <div className="nav-item" style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={handleViewLetterSent}>
-                                    <Badge count={unreadCount} className="custom-badge">
+                                    <Badge className="custom-badge">
                                         <InboxOutlined style={{ fontSize: '18px' }} />
                                     </Badge>
                                     <span>{t('sent')}</span>

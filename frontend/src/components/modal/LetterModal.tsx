@@ -3,6 +3,7 @@ import { CloseOutlined, CalendarOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import '../../CSS/LetterModal.css';
 import { useTranslation } from 'react-i18next';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface UserInfo {
     id: string;
@@ -18,18 +19,44 @@ interface Letter {
     receiver: UserInfo;
     matchId: string;
     createdAt: string;
+    isRead?: boolean;
 }
 
 interface LetterModalProps {
     letter: Letter | null;
     isOpen: boolean;
     onClose: () => void;
+    onLetterRead?: (letterId: string) => void; // Callback để update parent
 }
 
-const LetterModal: React.FC<LetterModalProps> = ({ letter, isOpen, onClose }) => {
+const LetterModal: React.FC<LetterModalProps> = ({ letter, isOpen, onClose, onLetterRead }) => {
     const [isClosing, setIsClosing] = useState(false);
+    const [readCache, setReadCache] = useState<Set<string>>(new Set());
+
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { markLetterAsRead } = useNotifications();
+
+    // Đánh dấu đã đọc khi modal mở
+    useEffect(() => {
+        if (!isOpen || !letter) return;
+
+        if (letter.isRead || readCache.has(letter.id)) return;
+
+        const mark = async () => {
+            try {
+                await markLetterAsRead(letter.id);
+
+                setReadCache(prev => new Set(prev).add(letter.id));
+
+                if (onLetterRead) onLetterRead(letter.id);
+            } catch (err) {
+                console.error("Failed to mark as read:", err);
+            }
+        };
+
+        mark();
+    }, [isOpen, letter]);
 
     useEffect(() => {
         if (isOpen) {
@@ -53,7 +80,6 @@ const LetterModal: React.FC<LetterModalProps> = ({ letter, isOpen, onClose }) =>
     const handleReply = () => {
         if (!letter) return;
 
-        // Navigate to SendLetterPage with reply data
         navigate('/send', {
             state: {
                 isReply: true,
@@ -137,7 +163,7 @@ const LetterModal: React.FC<LetterModalProps> = ({ letter, isOpen, onClose }) =>
 
                     <div className="modal-actions">
                         <button className="action-btn reply-btn" onClick={handleReply}>
-                            Trả lời
+                            {t('reply')}
                         </button>
                     </div>
                 </div>

@@ -6,6 +6,7 @@ import api from '../../apis/AxiosInstance';
 import LetterModal from '../../components/modal/LetterModal';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { useNotifications } from '../../hooks/useNotifications';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -20,7 +21,7 @@ interface LetterReceived {
     id: string;
     content: string;
     mood: string;
-    isSent: boolean;
+    isRead: boolean;
     sender: UserInfo;
     receiver: UserInfo;
     matchId: string;
@@ -158,7 +159,15 @@ const InboxPage: React.FC = () => {
         setSelectedLetter(letter);
         setIsModalOpen(true);
     };
-
+    const handleLetterRead = (letterId: string) => {
+        setLetters(prev =>
+            prev.map(l =>
+                l.id === letterId
+                    ? { ...l, isRead: true }
+                    : l
+            )
+        );
+    };
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setTimeout(() => {
@@ -352,6 +361,11 @@ const InboxPage: React.FC = () => {
                                         style={{ animationDelay: `${index * 0.05}s` }}
                                         onClick={() => handleOpenLetter(letter)}
                                     >
+                                        {!letter.isRead && (
+                                            <div className="unread-badge">
+                                                {t('new') || 'MỚI'}
+                                            </div>
+                                        )}
                                         <div className="envelope">
                                             <div className="envelope-back" style={{ background: getMoodColor(letter.mood) }} />
 
@@ -413,6 +427,7 @@ const InboxPage: React.FC = () => {
                 letter={selectedLetter}
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
+                onLetterRead={handleLetterRead}
             />
         </>
     );

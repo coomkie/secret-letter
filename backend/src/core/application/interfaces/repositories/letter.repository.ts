@@ -45,6 +45,12 @@ export interface ILettersRepository {
     deleteLetter(id: string): Promise<void>;
 
     count(options: any): Promise<number>;
+
     countReceivedLetters(userId: string): Promise<number>;
+
     countDistinctConnections(userId: string): Promise<number>;
+
+    countUnreadLetters(userId: string): Promise<number>;
+
+    markAsRead(letterId: string, userId: string): Promise<void>;
 }

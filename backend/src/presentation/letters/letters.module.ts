@@ -13,10 +13,14 @@ import {GetLetterByUserIdUseCase} from "../../core/application/use-cases/letters
 import {LettersRepositoryImpl} from "../../infra/database/repositories/letter.repository.impl";
 import {SendRandomLetterUseCase} from "../../core/application/use-cases/letters/send-radom-letter.usecase";
 import {ReplyLetterUseCase} from "../../core/application/use-cases/letters/reply-letter.usecase";
+import {NotificationsModule} from "../notifications/notifications.module";
+import {GetUnreadCountUseCase} from "../../core/application/use-cases/letters/get-unread-count.usecase";
+import {MarkAsReadUseCase} from "../../core/application/use-cases/letters/mark-as-read.usecase";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Letters, Users, Matches])
+        TypeOrmModule.forFeature([Letters, Users, Matches]),
+        NotificationsModule
     ],
     controllers: [LettersController],
     providers: [
@@ -28,6 +32,8 @@ import {ReplyLetterUseCase} from "../../core/application/use-cases/letters/reply
         GetAllLetterReceivedUseCase,
         GetAllLetterSentUseCase,
         GetLetterByUserIdUseCase,
+        GetUnreadCountUseCase,
+        MarkAsReadUseCase,
         {
             provide: 'ILettersRepository',
             useClass: LettersRepositoryImpl,
@@ -42,6 +48,8 @@ import {ReplyLetterUseCase} from "../../core/application/use-cases/letters/reply
         GetAllLetterReceivedUseCase,
         GetAllLetterSentUseCase,
         GetLetterByUserIdUseCase,
+        GetUnreadCountUseCase,
+        MarkAsReadUseCase,
         'ILettersRepository'
     ]
 })

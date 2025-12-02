@@ -106,7 +106,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
             mood: data.mood,
             user: sender,
             match,
-            isSent: true,
+            isRead: false,
         });
 
         return this.lettersRepo.save(letter);
@@ -135,7 +135,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
             content: data.content,
             user: sender,
             match,
-            isSent: true,
+            isRead: false,
         } as Partial<Letters>);
 
         return this.lettersRepo.save(letter);
@@ -150,7 +150,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
         const entity = this.lettersRepo.create({
             content: data.content,
             mood: data.mood,
-            isSent: false,
+            isRead: false,
             user,
             match: data.matchId ? {id: data.matchId} as Matches : null,
         } as Partial<Letters>);
@@ -174,7 +174,6 @@ export class LettersRepositoryImpl implements ILettersRepository {
         if (req.matchId) qb.andWhere('match.id = :matchId', {matchId: req.matchId});
         if (req.mood) qb.andWhere('letters.mood = :mood', {mood: req.mood});
         if (req.search) qb.andWhere('letters.content ILIKE :search', {search: `%${req.search}%`});
-        if (req.isSent !== undefined) qb.andWhere('letters.isSent = :isSent', {isSent: req.isSent});
 
         const sortColumn = req.sortBy?.includes('.') ? req.sortBy : `letters.${req.sortBy || 'created_at'}`;
 
@@ -202,7 +201,6 @@ export class LettersRepositoryImpl implements ILettersRepository {
             .leftJoinAndSelect('match.receiver', 'receiver')
             .where('(match.senderId = :id OR match.receiverId = :id)', {id: userId})
             .andWhere('sender.id != :id', {id: userId})
-            .andWhere('letters.isSent = true');
 
         if (req.search) {
             qb.andWhere('sender.id = :sid', {sid: req.search});
@@ -246,7 +244,6 @@ export class LettersRepositoryImpl implements ILettersRepository {
             .leftJoinAndSelect('match.receiver', 'receiver')
             .leftJoinAndSelect('match.sender', 'matchSender')
             .where('letters.userId = :id', {id: userId})
-            .andWhere('letters.isSent = true');
 
         if (req.search) {
             qb.andWhere('receiver.id = :receiverId', {receiverId: req.search});
@@ -296,7 +293,6 @@ export class LettersRepositoryImpl implements ILettersRepository {
             .leftJoin('letters.match', 'match')
             .where('(match.receiverId = :userId OR match.senderId = :userId)', {userId})
             .andWhere('letters.user != :userId', {userId})
-            .andWhere('letters.isSent = true')
             .getCount();
     }
 
@@ -305,9 +301,36 @@ export class LettersRepositoryImpl implements ILettersRepository {
         const raw = await this.lettersRepo
             .createQueryBuilder('letters')
             .select('COUNT(DISTINCT letters.match)', 'count')
-            .where('letters.user = :userId', { userId })
+            .where('letters.user = :userId', {userId})
             .getRawOne();
 
         return Number(raw.count);
+    }
+
+    async countUnreadLetters(userId: string): Promise<number> {
+        const count = await this.lettersRepo
+            .createQueryBuilder('letter')
+            .innerJoin('letter.match', 'match')
+            .innerJoin('letter.user', 'sender')  // 👈 Thêm join với sender
+            .where('(match.receiverId = :userId OR match.senderId = :userId)', { userId })
+            .andWhere('sender.id != :userId', { userId })  // 👈 Loại trừ letters tự gửi
+            .andWhere('letter.isRead = :isRead', { isRead: false })
+            .getCount();
+
+        console.log("UNREAD LETTER COUNT:", count);
+        return count;
+    }
+    async markAsRead(letterId: string, userId: string): Promise<void> {
+        const letter = await this.lettersRepo.findOne({
+            where: {id: letterId},
+            relations: ['match']
+        });
+
+        if (!letter) {
+            throw new Error('Letter not found');
+        }
+
+        letter.isRead = true;
+        await this.lettersRepo.save(letter);
     }
 }

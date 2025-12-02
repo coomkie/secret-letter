@@ -19,7 +19,7 @@ export class Letters extends BaseEntity {
     mood: Mood;
 
     @Column({ default: false })
-    isSent: boolean;
+    isRead: boolean;
 
     @ManyToOne(() => Users, user => user.letters, { onDelete: "CASCADE" })
     user: Users;

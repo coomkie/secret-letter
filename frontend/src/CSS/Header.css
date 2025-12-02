@@ -79,6 +79,11 @@
   transform: rotate(5deg) scale(1.1);
 }
 
+.warning-icon {
+  color: #ffb73e;
+  background: #ffffff;
+}
+
 .logo-text {
   font-size: 20px;
   font-weight: 700;

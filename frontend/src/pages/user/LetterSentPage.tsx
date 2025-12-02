@@ -13,7 +13,7 @@ interface LetterSent {
     id: string;
     content: string;
     mood: string;
-    isSent: boolean;
+    isRead: boolean;
     otherUser: {
         id: string;
         username: string;

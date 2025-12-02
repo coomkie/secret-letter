@@ -237,13 +237,13 @@ const SettingPage = () => {
                             <div className="setting-icon" style={{ background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' }}>
                                 <BellOutlined />
                             </div>
-                            <div className="setting-info">
+                            <div className="setting-info" >
                                 <h3 className="setting-title">{t('setting_3')}</h3>
                                 <p className="setting-description">
                                     {t('setting_3_title')}
                                 </p>
                             </div>
-                            <Switch
+                            <Switch disabled
                                 checked={notificationsEnabled}
                                 onChange={setNotificationsEnabled}
                                 className="setting-switch"

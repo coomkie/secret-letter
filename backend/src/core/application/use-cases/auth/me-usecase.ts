@@ -22,7 +22,7 @@ export class MeUseCase {
 
         // Total letters sent by this user
         const lettersCount = await this.lettersRepo.count({
-            where: {user: {id: user.id}, isSent: true}
+            where: {user: {id: user.id}, isRead: true}
         });
 
         const sentMatchesCount = await this.lettersRepo.countDistinctConnections(user.id);
