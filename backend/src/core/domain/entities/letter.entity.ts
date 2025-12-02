@@ -21,6 +21,8 @@ export class Letters extends BaseEntity {
     @Column({ default: false })
     isRead: boolean;
 
+    @Column({ default: false })
+    isReply: boolean;
     @ManyToOne(() => Users, user => user.letters, { onDelete: "CASCADE" })
     user: Users;
 

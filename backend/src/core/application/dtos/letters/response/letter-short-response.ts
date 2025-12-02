@@ -5,6 +5,7 @@ export class LetterShortResponse {
     id: string;
     mood: Mood;
     isRead: boolean;
+    isReply: boolean;
     userId: string;
     createdAt: Date;
 
@@ -12,6 +13,7 @@ export class LetterShortResponse {
         this.id = entity.id;
         this.mood = entity.mood;
         this.isRead = entity.isRead;
+        this.isReply = entity.isReply;
         this.userId = entity.user?.id;
         this.createdAt = entity.created_at;
     }

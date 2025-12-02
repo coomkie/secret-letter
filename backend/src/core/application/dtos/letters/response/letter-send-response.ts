@@ -6,6 +6,7 @@ export class LetterSendResponse {
     content: string;
     mood: Mood;
     isRead: boolean;
+    isReply: boolean;
     otherUser: {
         id: string;
         username: string;
@@ -20,7 +21,7 @@ export class LetterSendResponse {
         this.content = entity.content;
         this.mood = entity.mood;
         this.isRead = entity.isRead;
-
+        this.isReply = entity.isReply;
         // Xác định bên còn lại trong match
         this.otherUser = entity.match.sender.id === currentUserId
             ? {

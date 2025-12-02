@@ -6,6 +6,7 @@ export class LettersResponse {
     content: string;
     mood: Mood;
     isRead: boolean;
+    isReply: boolean;
     userId: string;
     matchId: string;
     createdAt: Date;
@@ -17,6 +18,7 @@ export class LettersResponse {
         this.content = entity.content;
         this.mood = entity.mood;
         this.isRead = entity.isRead;
+        this.isReply = entity.isReply;
         this.userId = entity.user?.id ?? null;
         this.matchId = entity.match.id;
         this.createdAt = entity.created_at;

@@ -107,6 +107,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
             user: sender,
             match,
             isRead: false,
+            isReply: false,
         });
 
         return this.lettersRepo.save(letter);
@@ -129,6 +130,11 @@ export class LettersRepositoryImpl implements ILettersRepository {
             throw new BadRequestException("User not part of this match");
         }
 
+        const hasReplied = match.letters.some(letter => letter.isReply && letter.user.id === senderId);
+        if (hasReplied) {
+            throw new BadRequestException("You have already replied to this match");
+        }
+
         const sender = await this.usersRepo.findOne({where: {id: senderId}});
 
         const letter = this.lettersRepo.create({
@@ -136,6 +142,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
             user: sender,
             match,
             isRead: false,
+            isReply: true,
         } as Partial<Letters>);
 
         return this.lettersRepo.save(letter);
@@ -151,6 +158,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
             content: data.content,
             mood: data.mood,
             isRead: false,
+            isReply: false,
             user,
             match: data.matchId ? {id: data.matchId} as Matches : null,
         } as Partial<Letters>);
@@ -308,18 +316,16 @@ export class LettersRepositoryImpl implements ILettersRepository {
     }
 
     async countUnreadLetters(userId: string): Promise<number> {
-        const count = await this.lettersRepo
+        return await this.lettersRepo
             .createQueryBuilder('letter')
             .innerJoin('letter.match', 'match')
             .innerJoin('letter.user', 'sender')  // 👈 Thêm join với sender
-            .where('(match.receiverId = :userId OR match.senderId = :userId)', { userId })
-            .andWhere('sender.id != :userId', { userId })  // 👈 Loại trừ letters tự gửi
-            .andWhere('letter.isRead = :isRead', { isRead: false })
+            .where('(match.receiverId = :userId OR match.senderId = :userId)', {userId})
+            .andWhere('sender.id != :userId', {userId})  // 👈 Loại trừ letters tự gửi
+            .andWhere('letter.isRead = :isRead', {isRead: false})
             .getCount();
-
-        console.log("UNREAD LETTER COUNT:", count);
-        return count;
     }
+
     async markAsRead(letterId: string, userId: string): Promise<void> {
         const letter = await this.lettersRepo.findOne({
             where: {id: letterId},
