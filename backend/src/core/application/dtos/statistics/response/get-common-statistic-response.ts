@@ -3,6 +3,9 @@ import {ApiProperty} from "@nestjs/swagger";
 
 export class NewUserResponse {
     @ApiProperty()
+    id: string;
+
+    @ApiProperty()
     username: string;
 
     @ApiProperty()
@@ -13,6 +16,9 @@ export class NewUserResponse {
 }
 
 export class NewLetterResponse {
+    @ApiProperty()
+    id: string;
+
     @ApiProperty()
     sender: string;
 
@@ -27,6 +33,9 @@ export class NewLetterResponse {
 }
 
 export class ReportNeedToSolveResponse {
+    @ApiProperty()
+    id: string;
+
     @ApiProperty()
     reported: string;
 

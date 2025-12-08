@@ -15,7 +15,7 @@ export class LettersScheduler {
         private readonly ws: NotificationsGateway
     ) {}
 
-    @Cron('* * * * *')
+    @Cron('0 0 7 * * *')
     async processLetters() {
         this.logger.log('Running 7AM letter send job...');
 

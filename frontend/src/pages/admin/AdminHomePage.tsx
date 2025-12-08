@@ -20,11 +20,10 @@ import {
 } from '@ant-design/icons';
 import '../../CSS/AdminHome.css';
 import api from '../../apis/AxiosInstance';
-import { Dropdown, MenuProps } from 'antd';
+import { Dropdown, MenuProps, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import viFlag from '../../assets/vi_flag.jpg';
 import enFlag from '../../assets/eng_flag.jpg';
-
 interface Stats {
     totalUsers: number;
     growRateUsers: number;
@@ -49,20 +48,34 @@ interface Letter {
     status: string;
     date: string;
 }
-
 interface Report {
+    id: string;
     reported: string;
     originalContent: string;
     reason: string;
     reportDate: string;
     status: string;
+    _loading?: boolean;
 }
+
 
 const AdminHomePage = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // USERS STATE
+    const [users, setUsers] = useState<any[]>([]);
+    const [usersLoading, setUsersLoading] = useState(true);
+
+    const [userPage, setUserPage] = useState(1);
+    const [pageSize] = useState(10);
+    const [totalUserPages, setTotalUserPages] = useState(1);
+
+    const [userSearch, setUserSearch] = useState('');
+    const [userStatus, setUserStatus] = useState('');
+    const [userSort, setUserSort] = useState('created_at-DESC');
 
     // State for statistics data
     const [stats, setStats] = useState<Stats>({
@@ -119,9 +132,14 @@ const AdminHomePage = () => {
         fetchStatistics();
     }, []);
     useEffect(() => {
+        fetchUsers();
+    }, [userPage, userSearch, userStatus, userSort]);
+
+    useEffect(() => {
         const syncedLang = getCurrentLanguage();
         setCurrentLanguage(syncedLang);
     }, [i18n.language]);
+
     const fetchStatistics = async () => {
         try {
             setLoading(true);
@@ -150,7 +168,72 @@ const AdminHomePage = () => {
             setLoading(false);
         }
     };
+    const fetchUsers = async () => {
+        try {
+            setUsersLoading(true);
 
+            const [sortBy, sortOrder] = userSort.split("-");
+
+            const res = await api.get("/users", {
+                params: {
+                    page: userPage,
+                    pageSize,
+                    search: userSearch,
+                    sortBy,
+                    sortOrder
+                }
+            });
+
+            setUsers(res.data.items || []);
+            setTotalUserPages(res.data.meta.totalPages);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setUsersLoading(false);
+        }
+    };
+    const deleteUser = async (id: string) => {
+        if (!window.confirm(t('sure_to_delete_user'))) return;
+
+        try {
+            await api.delete(`/users/${id}`);
+            fetchUsers();
+        } catch (e) {
+            console.error(e);
+            message.error(t('delete_failed'));
+        }
+    };
+
+    const updateReportStatus = async (reportId: string) => {
+        try {
+            // Tạm set loading
+            setReports(prev =>
+                prev.map(r => r.id === reportId ? { ...r, _loading: true } : r)
+            );
+
+            const res = await api.patch(`/reports/${reportId}`);
+            setReports(prev =>
+                prev.map(r =>
+                    r.id === reportId
+                        ? {
+                            ...r,
+                            status:
+                                r.status === "pending"
+                                    ? "reviewing"
+                                    : "pending",
+                            _loading: false
+                        }
+                        : r
+                )
+            );
+        } catch (error) {
+            console.error(error);
+            message.error(t('update_failed'));
+            setReports(prev =>
+                prev.map(r => (r.id === reportId ? { ...r, _loading: false } : r))
+            );
+        }
+    };
     const formatGrowthRate = (rate: number) => {
         const sign = rate >= 0 ? '+' : '';
         return `${sign}${rate}%`;
@@ -168,12 +251,12 @@ const AdminHomePage = () => {
     };
 
     const menuItems = [
-        { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
-        { key: 'users', icon: <UserOutlined />, label: 'Quản lý User' },
-        { key: 'letters', icon: <MailOutlined />, label: 'Quản lý Letter' },
-        { key: 'reports', icon: <WarningOutlined />, label: 'Báo cáo' },
-        { key: 'analytics', icon: <BarChartOutlined />, label: 'Thống kê' },
-        { key: 'settings', icon: <SettingOutlined />, label: 'Cài đặt' },
+        { key: 'dashboard', icon: <DashboardOutlined />, label: t('dashboard') },
+        { key: 'users', icon: <UserOutlined />, label: t('user_manage') },
+        { key: 'letters', icon: <MailOutlined />, label: t('letter_manage') },
+        { key: 'reports', icon: <WarningOutlined />, label: t('report_manage') },
+        { key: 'analytics', icon: <BarChartOutlined />, label: t('stat_manage') },
+        { key: 'settings', icon: <SettingOutlined />, label: t('setting') },
     ];
 
     const renderContent = () => {
@@ -181,7 +264,7 @@ const AdminHomePage = () => {
             return (
                 <div className="loading-container-2">
                     <LoadingOutlined className="loading-icon" />
-                    <p>Đang tải dữ liệu...</p>
+                    <p>{t('loading_data')}</p>
                 </div>
             );
         }
@@ -192,7 +275,7 @@ const AdminHomePage = () => {
                     <WarningOutlined className="error-icon" />
                     <h3>{t('error_500')}</h3>
                     <button className="retry-btn" onClick={fetchStatistics}>
-                        Thử lại
+                        {t('try_again')}
                     </button>
                 </div>
             );
@@ -210,7 +293,7 @@ const AdminHomePage = () => {
                                 </div>
                                 <div className="stat-info">
                                     <h3>{stats.totalUsers.toLocaleString()}</h3>
-                                    <p>Tổng số Users</p>
+                                    <p>{t('total_user')}</p>
                                     <span className={`stat-change ${stats.growRateUsers >= 0 ? 'positive' : 'negative'}`}>
                                         {formatGrowthRate(stats.growRateUsers)}
                                     </span>
@@ -223,7 +306,7 @@ const AdminHomePage = () => {
                                 </div>
                                 <div className="stat-info">
                                     <h3>{stats.totalLetters.toLocaleString()}</h3>
-                                    <p>Tổng số Letters</p>
+                                    <p>{t('total_letter')}</p>
                                     <span className={`stat-change ${stats.growRateLetters >= 0 ? 'positive' : 'negative'}`}>
                                         {formatGrowthRate(stats.growRateLetters)}
                                     </span>
@@ -236,7 +319,7 @@ const AdminHomePage = () => {
                                 </div>
                                 <div className="stat-info">
                                     <h3>{stats.totalReportsNotSolved}</h3>
-                                    <p>Báo cáo đang xử lý</p>
+                                    <p>{t('total_report')}</p>
                                     <span className={`stat-change ${stats.growRateReportsNotSolved >= 0 ? 'negative' : 'positive'}`}>
                                         {formatGrowthRate(stats.growRateReportsNotSolved)}
                                     </span>
@@ -249,7 +332,7 @@ const AdminHomePage = () => {
                                 </div>
                                 <div className="stat-info">
                                     <h3>{stats.totalReportsSolved}</h3>
-                                    <p>Đã xử lý tháng này</p>
+                                    <p>{t('report_solved')}</p>
                                     <span className={`stat-change ${stats.growRateReportsSolved >= 0 ? 'positive' : 'negative'}`}>
                                         {formatGrowthRate(stats.growRateReportsSolved)}
                                     </span>
@@ -261,12 +344,12 @@ const AdminHomePage = () => {
                         <div className="activity-grid">
                             <div className="activity-card">
                                 <div className="card-header">
-                                    <h3>Users mới đăng ký</h3>
-                                    <button className="view-all-btn">Xem tất cả</button>
+                                    <h3>{t('user_new')}</h3>
+                                    <button className="view-all-btn">{t('view_all')}</button>
                                 </div>
                                 <div className="user-list">
                                     {newUsers.length === 0 ? (
-                                        <div className="empty-state">Không có user mới</div>
+                                        <div className="empty-state">{t('no_new_user')}</div>
                                     ) : (
                                         newUsers.map((user, index) => (
                                             <div key={index} className="user-item">
@@ -278,7 +361,7 @@ const AdminHomePage = () => {
                                                     <p>{user.email}</p>
                                                 </div>
                                                 <span className={`status-badge ${user.status}`}>
-                                                    {user.status === 'active' ? 'Hoạt động' : 'Bị khóa'}
+                                                    {user.status === 'active' ? t('user_active') : t('user_suspened')}
                                                 </span>
                                             </div>
                                         ))
@@ -288,12 +371,12 @@ const AdminHomePage = () => {
 
                             <div className="activity-card">
                                 <div className="card-header">
-                                    <h3>Letters gần đây</h3>
-                                    <button className="view-all-btn">Xem tất cả</button>
+                                    <h3>{t('new_letter')}</h3>
+                                    <button className="view-all-btn">{t('view_all')}</button>
                                 </div>
                                 <div className="letter-list">
                                     {newLetters.length === 0 ? (
-                                        <div className="empty-state">Không có letter mới</div>
+                                        <div className="empty-state">{t('no_new_letter')}</div>
                                     ) : (
                                         newLetters.map((letter, index) => (
                                             <div key={index} className="letter-item">
@@ -305,8 +388,8 @@ const AdminHomePage = () => {
                                                     <p>{formatDate(letter.date)}</p>
                                                 </div>
                                                 <span className={`status-badge ${letter.status}`}>
-                                                    {letter.status === 'delivered' ? 'Đã gửi' :
-                                                        letter.status === 'pending' ? 'Chờ xử lý' : 'Bị báo cáo'}
+                                                    {letter.status === 'delivered' ? t('letter_sent') :
+                                                        letter.status === 'pending' ? t('letter_wait') : t('letter_reported')}
                                                 </span>
                                             </div>
                                         ))
@@ -318,52 +401,68 @@ const AdminHomePage = () => {
                         {/* Reports Section */}
                         <div className="reports-section">
                             <div className="card-header">
-                                <h3>Báo cáo cần xử lý</h3>
-                                <button className="view-all-btn">Xem tất cả</button>
+                                <h3>{t('report_need_to_solve')}</h3>
+                                <button className="view-all-btn">{t('view_all')}</button>
                             </div>
                             {reports.length === 0 ? (
-                                <div className="empty-state">Không có báo cáo nào</div>
+                                <div className="empty-state">{t('no_report')}</div>
                             ) : (
                                 <div className="reports-table">
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>Người bị báo cáo</th>
-                                                <th style={{ width: '260px' }}>Nội dung gốc</th>
-                                                <th>Lý do</th>
-                                                <th>Thời gian</th>
-                                                <th>Trạng thái</th>
-                                                <th>Hành động</th>
+                                                <th style={{ width: '260px' }}>{t('original_content')}</th>
+                                                <th>{t('reason')}</th>
+                                                <th>{t('date')}</th>
+                                                <th>{t('status')}</th>
+                                                <th>{t('action')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {reports.map((report, index) => (
-                                                <tr key={index}>
-                                                    <td>{report.reported}</td>
+                                                <tr key={report.id}>
+                                                    <td>{report.originalContent}</td>
+
                                                     <td>
                                                         <div className="content-cell">
-                                                            {report.originalContent}
+                                                            {report.reason}
                                                         </div>
                                                     </td>
-                                                    <td>{report.reason}</td>
+
                                                     <td>{formatDate(report.reportDate)}</td>
+
                                                     <td>
                                                         <span className={`status-badge ${report.status}`}>
-                                                            {report.status === 'pending' ? 'Chờ xử lý' :
-                                                                report.status === 'reviewing' ? 'Đang xem xét' :
-                                                                    'Đã xử lý'}
+                                                            {report.status === 'pending'
+                                                                ? 'Chờ xử lý'
+                                                                : report.status === 'reviewing'
+                                                                    ? t('review')
+                                                                    : t('solved')}
                                                         </span>
                                                     </td>
+
                                                     <td>
                                                         <div className="action-buttons">
-                                                            <button className="action-btn view" title="Xem chi tiết">
-                                                                <EyeOutlined />
+                                                            <button className="action-btn view"><EyeOutlined /></button>
+
+                                                            <button
+                                                                className="action-btn approve"
+                                                                disabled={report._loading}
+                                                                onClick={() => updateReportStatus(report.id)}
+                                                            >
+                                                                {report._loading
+                                                                    ? <LoadingOutlined />
+                                                                    : <CheckCircleOutlined />}
                                                             </button>
-                                                            <button className="action-btn approve" title="Chấp nhận">
-                                                                <CheckCircleOutlined />
-                                                            </button>
-                                                            <button className="action-btn reject" title="Từ chối">
-                                                                <CloseCircleOutlined />
+
+                                                            <button
+                                                                className="action-btn reject"
+                                                                disabled={report._loading}
+                                                                onClick={() => updateReportStatus(report.id)}
+                                                            >
+                                                                {report._loading
+                                                                    ? <LoadingOutlined />
+                                                                    : <CloseCircleOutlined />}
                                                             </button>
                                                         </div>
                                                     </td>
@@ -377,56 +476,160 @@ const AdminHomePage = () => {
                     </div>
                 );
 
+            /** ======================= USERS MANAGEMENT ======================= */
             case 'users':
                 return (
                     <div className="management-content">
                         <div className="page-header">
-                            <h2>Quản lý Users</h2>
+                            <h2>{t('user_manage_1')}</h2>
+
+                            {/* FILTER BLOCK */}
                             <div className="header-actions">
+                                {/* SEARCH */}
                                 <div className="search-box">
                                     <SearchOutlined />
-                                    <input type="text" placeholder="Tìm kiếm users..." />
+                                    <input
+                                        type="text"
+                                        placeholder={t('user_manage_2')}
+                                        value={userSearch}
+                                        onChange={(e) => {
+                                            setUserSearch(e.target.value);
+                                            setUserPage(1);
+                                        }}
+                                    />
                                 </div>
-                                <button className="primary-btn">Thêm User</button>
+
+                                {/* FILTER STATUS */}
+                                <select
+                                    value={userStatus}
+                                    onChange={(e) => {
+                                        setUserStatus(e.target.value);
+                                        setUserPage(1);
+                                    }}
+                                    className="filter-select"
+                                >
+                                    <option value="">{t('user_manage_3')}</option>
+                                    <option value="active">{t('user_manage_4')}</option>
+                                    <option value="banned">{t('user_manage_5')}</option>
+                                </select>
+
+                                {/* SORT */}
+                                <select
+                                    value={userSort}
+                                    onChange={(e) => {
+                                        setUserSort(e.target.value as any);
+                                        setUserPage(1);
+                                    }}
+                                    className="filter-select"
+                                >
+                                    <option value="created_at-DESC">{t('user_manage_6')}</option>
+                                    <option value="created_at-ASC">{t('user_manage_7')}</option>
+                                    <option value="username-ASC">{t('user_manage_8')}</option>
+                                    <option value="username-DESC">{t('user_manage_9')}</option>
+                                </select>
                             </div>
                         </div>
+
+                        {/* TABLE */}
                         <div className="content-table">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Tên</th>
-                                        <th>Email</th>
-                                        <th>Ngày tham gia</th>
-                                        <th>Trạng thái</th>
-                                        <th>Hành động</th>
+                                        <th>{t('user_manage_10')}</th>
+                                        <th>{t('user_manage_11')}</th>
+                                        <th>{t('user_manage_12')}</th>
+                                        <th>{t('user_manage_13')}r</th>
+                                        <th>{t('user_manage_14')}</th>
+                                        <th>{t('user_manage_15')}</th>
+                                        <th>{t('user_manage_16')}</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
-                                    {newUsers.map((user, index) => (
-                                        <tr key={index}>
-                                            <td>#{index + 1}</td>
-                                            <td>{user.name}</td>
-                                            <td>{user.email}</td>
-                                            <td>{user.joinDate || 'N/A'}</td>
-                                            <td>
-                                                <span className={`status-badge ${user.status}`}>
-                                                    {user.status === 'active' ? 'Hoạt động' : 'Bị khóa'}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div className="action-buttons">
-                                                    <button className="action-btn view"><EyeOutlined /></button>
-                                                    <button className="action-btn delete"><DeleteOutlined /></button>
-                                                </div>
+                                    {usersLoading ? (
+                                        <tr>
+                                            <td colSpan={7} style={{ textAlign: 'center', padding: 20 }}>
+                                                <LoadingOutlined style={{ fontSize: 24 }} />
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : users.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="empty-state">
+                                                {t('user_manage_17')}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        users.map((u, i) => (
+                                            <tr key={u.id}>
+                                                <td>{u.id.slice(0, 8)}...</td>
+
+                                                <td>{u.username}</td>
+
+                                                <td>{u.email}</td>
+
+                                                <td>
+                                                    <img
+                                                        src={u.avatar}
+                                                        alt=""
+                                                        style={{
+                                                            width: 40,
+                                                            height: 40,
+                                                            borderRadius: '50%',
+                                                            objectFit: 'cover'
+                                                        }}
+                                                    />
+                                                </td>
+
+                                                <td>{formatDate(u.created_at)}</td>
+
+                                                <td>
+                                                    <span className={`status-badge ${u.isAdmin ? "admin" : "active"}`}>
+                                                        {u.isAdmin ? "Admin" : t('user_manage_4')}
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    <div className="action-buttons">
+                                                        <button className="action-btn view">
+                                                            <EyeOutlined />
+                                                        </button>
+
+                                                        <button
+                                                            className="action-btn delete"
+                                                            onClick={() => deleteUser(u.id)}
+                                                        >
+                                                            <DeleteOutlined />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* PAGINATION */}
+                        <div className="pagination">
+                            <button
+                                disabled={userPage === 1}
+                                onClick={() => setUserPage(userPage - 1)}
+                            >
+                                ←
+                            </button>
+
+                            <span>{t('user_manage_18')} {userPage} / {totalUserPages}</span>
+
+                            <button
+                                disabled={userPage === totalUserPages}
+                                onClick={() => setUserPage(userPage + 1)}
+                            >
+                                →
+                            </button>
+                        </div>
                     </div>
                 );
+
 
             case 'letters':
                 return (
@@ -491,6 +694,7 @@ const AdminHomePage = () => {
                                 </div>
                             </div>
                         </div>
+
                         <div className="content-table">
                             <table>
                                 <thead>
@@ -506,28 +710,52 @@ const AdminHomePage = () => {
                                 </thead>
                                 <tbody>
                                     {reports.map((report, index) => (
-                                        <tr key={index}>
+                                        <tr key={report.id}>
                                             <td>#{index + 1}</td>
                                             <td>{report.reported}</td>
+
                                             <td>
                                                 <div className="content-cell">
                                                     {report.originalContent}
                                                 </div>
                                             </td>
+
                                             <td>{report.reason}</td>
                                             <td>{formatDate(report.reportDate)}</td>
+
                                             <td>
                                                 <span className={`status-badge ${report.status}`}>
-                                                    {report.status === 'pending' ? 'Chờ xử lý' :
-                                                        report.status === 'reviewing' ? 'Đang xem xét' :
-                                                            'Đã xử lý'}
+                                                    {report.status === 'pending'
+                                                        ? 'Chờ xử lý'
+                                                        : report.status === 'reviewing'
+                                                            ? 'Đang xem xét'
+                                                            : 'Đã xử lý'}
                                                 </span>
                                             </td>
+
                                             <td>
                                                 <div className="action-buttons">
                                                     <button className="action-btn view"><EyeOutlined /></button>
-                                                    <button className="action-btn approve"><CheckCircleOutlined /></button>
-                                                    <button className="action-btn reject"><CloseCircleOutlined /></button>
+
+                                                    <button
+                                                        className="action-btn approve"
+                                                        disabled={report._loading}
+                                                        onClick={() => updateReportStatus(report.id)}
+                                                    >
+                                                        {report._loading
+                                                            ? <LoadingOutlined />
+                                                            : <CheckCircleOutlined />}
+                                                    </button>
+
+                                                    <button
+                                                        className="action-btn reject"
+                                                        disabled={report._loading}
+                                                        onClick={() => updateReportStatus(report.id)}
+                                                    >
+                                                        {report._loading
+                                                            ? <LoadingOutlined />
+                                                            : <CloseCircleOutlined />}
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -538,11 +766,8 @@ const AdminHomePage = () => {
                     </div>
                 );
 
-            default:
-                return <div className="coming-soon">Tính năng đang phát triển...</div>;
-        }
+        };
     };
-
     return (
         <div className="admin-page">
             {/* Sidebar */}
@@ -635,5 +860,4 @@ const AdminHomePage = () => {
         </div>
     );
 };
-
 export default AdminHomePage;

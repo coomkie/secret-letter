@@ -118,6 +118,7 @@ export class StatisticRepositoryImpl implements IStatisticsRepository {
         });
 
         const newUserResponse = newUsers.map(user => ({
+            id: user.id,
             username: user.username,
             email: user.email,
             avatar: user.avatar
@@ -133,6 +134,7 @@ export class StatisticRepositoryImpl implements IStatisticsRepository {
         });
 
         const newLetterResponse = newLetters.map(letter => ({
+            id: letter.id,
             sender: letter.match.sender?.username ?? '',
             receiver: letter.match.receiver?.username ?? '',
             sendDate: letter.sendAt,
@@ -149,6 +151,7 @@ export class StatisticRepositoryImpl implements IStatisticsRepository {
         });
 
         const reportResponse = pendingReports.map(r => ({
+            id: r.id,
             reported: r.targetLetter?.user?.username ?? 'Unknown',
             originalContent: r.targetLetter?.content ?? '',
             reason: r.reason,
