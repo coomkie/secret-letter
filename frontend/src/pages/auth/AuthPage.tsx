@@ -38,14 +38,6 @@ const AuthPage = () => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [loading, setLoading] = useState(false);
 
-    // Clear user data when component mounts (user is on auth page)
-    useEffect(() => {
-        // Only clear if not authenticated
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setUser(null);
-        }
-    }, []);
 
     useEffect(() => {
         const newParticles = Array.from({ length: 20 }, (_, i) => ({
@@ -127,24 +119,31 @@ const AuthPage = () => {
                     const token = response.data.accessToken;
                     localStorage.setItem('token', token);
 
+                    // Decode token để lấy isAdmin
                     const decodedUser = jwtDecode<MyJwtPayload>(token);
 
-                    // CRITICAL FIX: Load user data vào context trước khi navigate
+                    // Load user data vào context
                     try {
                         const userRes = await api.get("/auth/me");
-                        setUser(userRes.data);
+                        // Merge data từ API với isAdmin từ token
+                        setUser({
+                            ...userRes.data,
+                            isAdmin: decodedUser.isAdmin // Thêm isAdmin từ token
+                        });
+
+                        // Navigate dựa trên isAdmin từ token
+                        if (decodedUser.isAdmin) {
+                            navigate('/admin/home');
+                        } else {
+                            navigate('/home');
+                        }
                     } catch (err) {
                         console.error("Failed to load user data:", err);
-                    }
-
-                    // Navigate sau khi đã load user
-                    if (decodedUser.isAdmin) {
-                        navigate('/admin/home');
-                    } else {
-                        navigate('/');
+                        navigate('/auth');
                     }
                 }
             } else {
+                // Register logic không đổi
                 await api.post('/auth/register', {
                     email: formData.email,
                     username: formData.username,

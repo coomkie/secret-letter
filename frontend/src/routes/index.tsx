@@ -1,5 +1,4 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import PrivateRoute from "./PrivateRouter";
 import HomePage from "../pages/user/HomePage";
 import DefaultLayout from "../layouts/DefaultLayout";
 import AuthPage from "../pages/auth/AuthPage";
@@ -10,31 +9,33 @@ import InboxPage from "../pages/user/InboxPage";
 import SettingPage from "../pages/user/SettingPage";
 import HowItWorksPage from "../pages/user/HowItWork";
 import AdminHomePage from "../pages/admin/AdminHomePage";
+import RootRedirect from "./rootRedirect";
+import PrivateRoute from "./PrivateRouter";
 
 export const router = createBrowserRouter([
+
+    // ---------- PUBLIC (No layout) ----------
     {
-        element: <DefaultLayout />,
+        path: "/auth",
+        element: <AuthPage />,
+    },
+
+    // ---------- ADMIN ONLY ----------
+    {
+        element: <PrivateRoute adminOnly />,
         children: [
-            { path: "/auth", element: <AuthPage /> },
+            { path: "/admin/home", element: <AdminHomePage /> },
         ],
     },
+
+    // ---------- USER ONLY ----------
     {
-        path: "/",
-        element: <Navigate to="/home" replace />
-    },
-    {
-        path: '/admin/home',
-        element: <AdminHomePage />
-    },
-    {
-        element: <PrivateRoute />,
+        element: <PrivateRoute userOnly />,
         children: [
             {
                 element: <DefaultLayout />,
                 children: [
                     { path: "/home", element: <HomePage /> },
-                    { path: "/auth", element: <AuthPage /> },
-                    { path: "/admin/home", element: <AdminHomePage /> },
                     { path: "/profile", element: <ProfilePage /> },
                     { path: "/send", element: <SendLetterPage /> },
                     { path: "/letter-sent", element: <LetterSentPage /> },
@@ -44,5 +45,10 @@ export const router = createBrowserRouter([
                 ],
             },
         ],
+    },
+
+    {
+        path: "/",
+        element: <RootRedirect />,
     },
 ]);

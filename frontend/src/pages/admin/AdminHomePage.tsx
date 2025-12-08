@@ -24,6 +24,7 @@ import { Dropdown, MenuProps, message } from 'antd';
 import { useTranslation } from 'react-i18next';
 import viFlag from '../../assets/vi_flag.jpg';
 import enFlag from '../../assets/eng_flag.jpg';
+import { useNavigate } from 'react-router-dom';
 interface Stats {
     totalUsers: number;
     growRateUsers: number;
@@ -76,7 +77,7 @@ const AdminHomePage = () => {
     const [userSearch, setUserSearch] = useState('');
     const [userStatus, setUserStatus] = useState('');
     const [userSort, setUserSort] = useState('created_at-DESC');
-
+    const navigate = useNavigate();
     // State for statistics data
     const [stats, setStats] = useState<Stats>({
         totalUsers: 0,
@@ -126,7 +127,10 @@ const AdminHomePage = () => {
         setCurrentLanguage(newLang);
         // i18next automatically saves to localStorage as 'i18nextLng'
     };
-
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        navigate("/auth");
+    };
     // Fetch statistics from backend
     useEffect(() => {
         fetchStatistics();
@@ -795,7 +799,7 @@ const AdminHomePage = () => {
                 <div className="sidebar-footer">
                     <div className="menu-item logout">
                         <span className="menu-icon"><LogoutOutlined /></span>
-                        {!sidebarCollapsed && <span className="menu-label">Đăng xuất</span>}
+                        {!sidebarCollapsed && <span className="menu-label" onClick={handleLogout}>{t('logout')}</span>}
                     </div>
                 </div>
             </div>
