@@ -152,7 +152,7 @@ export class UsersRepositoryImpl implements IUsersRepository {
 
     getUserById(id: string): Promise<Users | null> {
         return this._userRepository.findOne({
-            where: {id, isAdmin: false},
+            where: {id},
             relations: {
                 settings: {
                     user: true

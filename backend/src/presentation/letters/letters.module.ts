@@ -16,11 +16,14 @@ import {ReplyLetterUseCase} from "../../core/application/use-cases/letters/reply
 import {NotificationsModule} from "../notifications/notifications.module";
 import {GetUnreadCountUseCase} from "../../core/application/use-cases/letters/get-unread-count.usecase";
 import {MarkAsReadUseCase} from "../../core/application/use-cases/letters/mark-as-read.usecase";
+import {CheckReplyUseCase} from "../../core/application/use-cases/letters/check-reply.usecase";
+import {LettersScheduler} from "../../infra/database/schedule/letters.scheduler";
+import {Reports} from "../../core/domain/entities/report.entity";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Letters, Users, Matches]),
-        NotificationsModule
+        TypeOrmModule.forFeature([Letters, Users, Matches, Reports]),
+        NotificationsModule,
     ],
     controllers: [LettersController],
     providers: [
@@ -34,6 +37,8 @@ import {MarkAsReadUseCase} from "../../core/application/use-cases/letters/mark-a
         GetLetterByUserIdUseCase,
         GetUnreadCountUseCase,
         MarkAsReadUseCase,
+        CheckReplyUseCase,
+        LettersScheduler,
         {
             provide: 'ILettersRepository',
             useClass: LettersRepositoryImpl,
@@ -50,6 +55,7 @@ import {MarkAsReadUseCase} from "../../core/application/use-cases/letters/mark-a
         GetLetterByUserIdUseCase,
         GetUnreadCountUseCase,
         MarkAsReadUseCase,
+        CheckReplyUseCase,
         'ILettersRepository'
     ]
 })

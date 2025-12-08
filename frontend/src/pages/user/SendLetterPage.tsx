@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { SendOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { message } from 'antd';
+import { SendOutlined, ArrowLeftOutlined, WarningOutlined } from '@ant-design/icons';
+import { message, Modal } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../../CSS/SendLetter.css';
 import api from '../../apis/AxiosInstance';
@@ -11,6 +11,7 @@ type Mood = 'happy' | 'sad' | 'angry' | 'neutral';
 interface ReplyState {
     isReply: boolean;
     matchId: string;
+    letterId?: string;
     recipient: {
         id: string;
         username: string;
@@ -30,6 +31,8 @@ const SendLetterPage = () => {
     const [particles, setParticles] = useState<Array<{ id: number, x: number, y: number, delay: number }>>([]);
     const [envelopeState, setEnvelopeState] = useState<'open' | 'closing' | 'closed'>('open');
     const [moodHint, setMoodHint] = useState<string>('');
+    const [isValidating, setIsValidating] = useState(false);
+
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -38,6 +41,39 @@ const SendLetterPage = () => {
     // Get reply data from navigation state
     const replyData = location.state as ReplyState | null;
     const isReplyMode = replyData?.isReply || false;
+
+    // Validate reply status when component mounts in reply mode
+    useEffect(() => {
+        if (isReplyMode && replyData?.letterId) {
+            validateReplyStatus();
+        }
+    }, [isReplyMode, replyData?.letterId]);
+
+    const validateReplyStatus = async () => {
+        if (!replyData?.letterId) return;
+
+        setIsValidating(true);
+        try {
+            const { data } = await api.get(`/letters/check-replied/${replyData.letterId}`);
+            const isAlreadyReplied = data === true || data.isReplied === true;
+
+            if (isAlreadyReplied) {
+                Modal.warning({
+                    title: t('warning') || 'Cảnh báo',
+                    content: t('letter_already_replied') || 'Thư này đã được phản hồi trước đó. Bạn sẽ được chuyển về hộp thư.',
+                    okText: t('ok') || 'Đồng ý',
+                    onOk: () => {
+                        navigate('/inbox', { replace: true });
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error validating reply status:', error);
+            message.error(t('validation_error') || 'Không thể xác thực trạng thái thư');
+        } finally {
+            setIsValidating(false);
+        }
+    };
 
     useEffect(() => {
         const newParticles = Array.from({ length: 25 }, (_, i) => ({
@@ -57,7 +93,7 @@ const SendLetterPage = () => {
             const response = await api.get('/user-settings');
             const mood = response.data.preferredMoods?.[0] ?? 'NEUTRAL';
             setSelectedMood(mood.toLowerCase() as Mood);
-            setMoodHint(t(getRandomHint(mood)));
+            setMoodHint(getRandomHint(mood.toLowerCase()));
         } catch (error) {
             console.error('Error fetching mood:', error);
         }
@@ -170,17 +206,33 @@ const SendLetterPage = () => {
 
     const handleSendLetter = async () => {
         if (!content.trim()) return message.warning(t('blank_letter'));
+        if (isValidating) return;
 
         if (isReplyMode) {
-            // Send reply letter
+            // Validate again before sending
             if (!replyData?.matchId) return message.error('Invalid match data');
+            if (!replyData?.letterId) return message.error('Invalid letter data');
 
             setIsSending(true);
             setEnvelopeState('closing');
 
             try {
+                // Double-check reply status
+                const { data: checkData } = await api.get(`/letters/check-replied/${replyData.letterId}`);
+                const isAlreadyReplied = checkData === true || checkData.isReplied === true;
+
+                if (isAlreadyReplied) {
+                    message.warning(t('letter_already_replied') || 'Thư này đã được phản hồi');
+                    setTimeout(() => {
+                        navigate('/inbox', { replace: true });
+                    }, 1500);
+                    return;
+                }
+
+                // Send reply
                 await api.post('/letters/reply', {
                     matchId: replyData.matchId,
+                    letterId: replyData.letterId, // Add letterId
                     content: content.trim()
                 });
 
@@ -191,10 +243,15 @@ const SendLetterPage = () => {
                     duration: 3
                 });
 
-            } catch (err) {
-                message.error(t('sent_letter_fail'));
+                setTimeout(() => {
+                    navigate('/inbox', { replace: true });
+                }, 800);
+
+            } catch (err: any) {
+                console.error('Error sending reply:', err);
+                const errorMsg = err?.response?.data?.message || t('sent_letter_fail');
+                message.error(errorMsg);
                 setEnvelopeState('open');
-                setIsSending(false);
             } finally {
                 setIsSending(false);
             }
@@ -219,11 +276,18 @@ const SendLetterPage = () => {
                     duration: 3
                 });
 
+                setTimeout(() => {
+                    setContent('');
+                    setSelectedMood(null);
+                    setCharCount(0);
+                    setEnvelopeState('open');
+                    setIsSending(false);
+                }, 800);
+
             } catch (err) {
+                console.error('Error sending letter:', err);
                 message.error(t('sent_letter_fail'));
                 setEnvelopeState('closed');
-                setIsSending(false);
-            } finally {
                 setIsSending(false);
             }
         }
@@ -234,6 +298,29 @@ const SendLetterPage = () => {
     };
 
     const selectedMoodData = moods.find(m => m.type === selectedMood);
+
+    // Show loading overlay while validating
+    if (isValidating) {
+        return (
+            <div className="send-letter-page" style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                minHeight: '100vh'
+            }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div className="sending-spinner" style={{ 
+                        width: '48px', 
+                        height: '48px',
+                        margin: '0 auto 16px'
+                    }}></div>
+                    <p style={{ fontSize: '16px', color: '#6b7280' }}>
+                        {t('validating') || 'Đang xác thực...'}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="send-letter-page">
@@ -280,7 +367,6 @@ const SendLetterPage = () => {
                                 : t("send_letter_content")}
                         </p>
                     </div>
-
 
                     {/* Mood Selector - Only show for non-reply mode */}
                     {!isReplyMode && (
@@ -386,7 +472,6 @@ const SendLetterPage = () => {
                                 {replyData.originalLetter && (
                                     <div className="original-letter-preview">
                                         <span className="preview-label">{t('root_mail')}</span>
-
                                         <textarea
                                             className="preview-textarea"
                                             value={replyData.originalLetter.content}
@@ -394,7 +479,6 @@ const SendLetterPage = () => {
                                         />
                                     </div>
                                 )}
-
                             </div>
                         )}
                     </div>
@@ -409,7 +493,6 @@ const SendLetterPage = () => {
                                                 <span>{t('preview_text')}</span>
                                             </div>
                                             <p className="preview-text">{moodHint}</p>
-
                                         </>
                                     )}
                                     {isReplyMode && (

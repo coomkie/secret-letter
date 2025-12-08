@@ -5,6 +5,7 @@ import {GetAllLetterReceivedRequest} from "../../dtos/letters/request/get-all-le
 import {GetAllLetterSentRequest} from "../../dtos/letters/request/get-all-letter-sent-request";
 import {SendRandomLetterRequest} from "../../dtos/letters/request/send-letter-random-request";
 import {ReplyLetterRequest} from "../../dtos/letters/request/reply-letter.-request";
+import {CheckReplyResponse} from "../../dtos/letters/response/check-reply-response";
 
 export interface ILettersRepository {
     createLetter(data: CreateLetterRequest): Promise<Letters>;
@@ -53,4 +54,6 @@ export interface ILettersRepository {
     countUnreadLetters(userId: string): Promise<number>;
 
     markAsRead(letterId: string, userId: string): Promise<void>;
+
+    checkReply(letterId: string): Promise<CheckReplyResponse>;
 }

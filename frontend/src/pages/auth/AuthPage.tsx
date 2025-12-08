@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { MailOutlined, LockOutlined, UserOutlined, EyeOutlined, EyeInvisibleOutlined, GoogleOutlined, GithubOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import '../../CSS/Auth.css';
@@ -6,6 +6,7 @@ import api from '../../apis/AxiosInstance';
 import { jwtDecode } from 'jwt-decode';
 import { MyJwtPayload } from '../../types/auth';
 import { useTranslation } from 'react-i18next';
+import { UserContext } from '../../utils/userContext';
 
 type AuthMode = 'login' | 'register';
 
@@ -21,6 +22,8 @@ interface FormErrors {
 const AuthPage = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { setUser } = useContext(UserContext);
+
     const [mode, setMode] = useState<AuthMode>('login');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -34,6 +37,15 @@ const AuthPage = () => {
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [loading, setLoading] = useState(false);
+
+    // Clear user data when component mounts (user is on auth page)
+    useEffect(() => {
+        // Only clear if not authenticated
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setUser(null);
+        }
+    }, []);
 
     useEffect(() => {
         const newParticles = Array.from({ length: 20 }, (_, i) => ({
@@ -51,7 +63,6 @@ const AuthPage = () => {
             ...formData,
             [name]: value
         });
-        // Xóa lỗi khi người dùng bắt đầu nhập
         if (errors[name as keyof FormErrors]) {
             setErrors({
                 ...errors,
@@ -63,21 +74,18 @@ const AuthPage = () => {
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {};
 
-        // Validate email
         if (!formData.email) {
             newErrors.email = t('blank_email');
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = t('invalid_email');
         }
 
-        // Validate password
         if (!formData.password) {
             newErrors.password = t('blank_password');
         } else if (formData.password.length < 6) {
             newErrors.password = t('invalid_password');
         }
 
-        // Validate register fields
         if (mode === 'register') {
             if (!formData.username) {
                 newErrors.username = t('blank_username');
@@ -98,6 +106,8 @@ const AuthPage = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    // Trong AuthPage.tsx, sửa phần handleSubmit như sau:
+
     const handleSubmit = async () => {
         if (!validateForm()) {
             return;
@@ -108,7 +118,6 @@ const AuthPage = () => {
 
         try {
             if (mode === 'login') {
-                // Đăng nhập
                 const response = await api.post('/auth/login', {
                     email: formData.email,
                     password: formData.password
@@ -116,32 +125,38 @@ const AuthPage = () => {
 
                 if (response.data.accessToken) {
                     const token = response.data.accessToken;
-
                     localStorage.setItem('token', token);
 
-                    const user = jwtDecode<MyJwtPayload>(token);
+                    const decodedUser = jwtDecode<MyJwtPayload>(token);
 
-                    if (user.isAdmin) {
+                    // CRITICAL FIX: Load user data vào context trước khi navigate
+                    try {
+                        const userRes = await api.get("/auth/me");
+                        setUser(userRes.data);
+                    } catch (err) {
+                        console.error("Failed to load user data:", err);
+                    }
+
+                    // Navigate sau khi đã load user
+                    if (decodedUser.isAdmin) {
                         navigate('/admin/home');
                     } else {
                         navigate('/');
                     }
                 }
             } else {
-                // Đăng ký
                 await api.post('/auth/register', {
                     email: formData.email,
                     username: formData.username,
-                    gender: formData.gender === 'male', // true cho nam, false cho nữ
+                    gender: formData.gender === 'male',
                     avatar: '',
                     password: formData.password
                 });
 
-                // Đăng ký thành công, chuyển sang mode đăng nhập
                 setMode('login');
                 setFormData({
                     username: '',
-                    email: formData.email, // Giữ lại email
+                    email: formData.email,
                     password: '',
                     confirmPassword: '',
                     gender: ''
@@ -152,7 +167,6 @@ const AuthPage = () => {
             console.error('Auth error:', error);
 
             if (error.response?.data?.message) {
-                // Xử lý lỗi từ backend
                 const errorMessage = error.response.data.message;
 
                 if (errorMessage.includes('wrong email')) {
@@ -240,8 +254,6 @@ const AuthPage = () => {
                             <h1 className="auth-title">
                                 {mode === 'login' ? t('login') : t('register')}
                             </h1>
-                            <p className="auth-subtitle">
-                            </p>
                         </div>
 
                         {errors.general && (

@@ -7,7 +7,7 @@ import {
     Query,
     Body,
     UseGuards,
-    Request, Patch,
+    Request, Patch, Req,
 } from '@nestjs/common';
 import {CreateLetterRequest} from '../../core/application/dtos/letters/request/create-letter-request';
 import {GetAllLetterAdminRequest} from '../../core/application/dtos/letters/request/get-all-letter-admin-request';
@@ -29,6 +29,7 @@ import {SendRandomLetterRequest} from "../../core/application/dtos/letters/reque
 import {ReplyLetterRequest} from "../../core/application/dtos/letters/request/reply-letter.-request";
 import {GetUnreadCountUseCase} from "../../core/application/use-cases/letters/get-unread-count.usecase";
 import {MarkAsReadUseCase} from "../../core/application/use-cases/letters/mark-as-read.usecase";
+import {CheckReplyUseCase} from "../../core/application/use-cases/letters/check-reply.usecase";
 
 @ApiBearerAuth('jwt')
 @ApiTags('Letters')
@@ -45,7 +46,8 @@ export class LettersController {
         private readonly getLetterByUserIdUseCase: GetLetterByUserIdUseCase,
         private readonly deleteLetterUseCase: DeleteLetterUseCase,
         private readonly getUnreadCountUseCase: GetUnreadCountUseCase,
-        private readonly markAsReadUseCase: MarkAsReadUseCase
+        private readonly markAsReadUseCase: MarkAsReadUseCase,
+        private readonly checkReplyUseCase: CheckReplyUseCase,
     ) {
     }
 
@@ -99,7 +101,12 @@ export class LettersController {
     getLetterById(@Param('userId') userId: string) {
         return this.getLetterByUserIdUseCase.execute(userId);
     }
-
+    @Get('check-replied/:letterId')
+    async checkReplied(
+        @Param('letterId') letterId: string,
+    ) {
+        return this.checkReplyUseCase.execute(letterId);
+    }
     @Patch(':letterId/mark-as-read')
     @UseGuards(JwtAuthGuard)
     async markAsRead(@Param('letterId') letterId: string, @Request() req: any) {

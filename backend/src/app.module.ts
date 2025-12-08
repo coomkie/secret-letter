@@ -10,9 +10,14 @@ import {UserSettingsModule} from "./presentation/user-settings/user-settings.mod
 import {LettersModule} from './presentation/letters/letters.module';
 import {MatchesModule} from "./presentation/matches/matches.module";
 import {NotificationsModule} from "./presentation/notifications/notifications.module";
+import {ReportsModule} from "./presentation/reports/reports.module";
+import {ScheduleModule} from "@nestjs/schedule";
+import {StatisticsModule} from "./presentation/statistics/statistics.module";
 
 @Module({
     imports: [
+        ScheduleModule.forRoot(),
+        LettersModule,
         ConfigModule.forRoot({
             isGlobal: true,
         }),
@@ -32,7 +37,9 @@ import {NotificationsModule} from "./presentation/notifications/notifications.mo
         SeedModule,
         LettersModule,
         MatchesModule,
-        NotificationsModule
+        ReportsModule,
+        NotificationsModule,
+        StatisticsModule
     ],
     controllers: [AppController],
     providers: [AppService],

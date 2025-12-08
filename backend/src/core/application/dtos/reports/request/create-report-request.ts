@@ -1,10 +1,7 @@
 import {ApiProperty} from "@nestjs/swagger";
 import {IsString, IsUUID} from "class-validator";
 
-export class ReplyLetterRequest {
-    @ApiProperty()
-    @IsUUID()
-    matchId: string;
+export class CreateReportRequest {
 
     @ApiProperty()
     @IsUUID()
@@ -12,5 +9,5 @@ export class ReplyLetterRequest {
 
     @ApiProperty()
     @IsString()
-    content: string;
+    reason: string;
 }

@@ -1,12 +1,14 @@
-import { Mood } from "../../../../domain/enums/mood.enum";
-import { Letters } from "../../../../domain/entities/letter.entity";
+import {Mood} from "../../../../domain/enums/mood.enum";
+import {Letters} from "../../../../domain/entities/letter.entity";
 
 export class LetterSendResponse {
     id: string;
     content: string;
     mood: Mood;
+    isSent: boolean;
     isRead: boolean;
     isReply: boolean;
+    sendAt: Date;
     otherUser: {
         id: string;
         username: string;
@@ -20,8 +22,10 @@ export class LetterSendResponse {
         this.id = entity.id;
         this.content = entity.content;
         this.mood = entity.mood;
+        this.isSent = entity.isSent;
         this.isRead = entity.isRead;
         this.isReply = entity.isReply;
+        this.sendAt = entity.sendAt;
         // Xác định bên còn lại trong match
         this.otherUser = entity.match.sender.id === currentUserId
             ? {

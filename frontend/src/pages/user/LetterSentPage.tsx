@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SendOutlined, CalendarOutlined, FilterOutlined, LoadingOutlined, CloseOutlined } from '@ant-design/icons';
+import { SendOutlined, CalendarOutlined, FilterOutlined, LoadingOutlined, CloseOutlined, EyeOutlined } from '@ant-design/icons';
 import { Pagination, Empty, Select, DatePicker } from 'antd';
 import '../../CSS/LetterSent.css'
 import api from '../../apis/AxiosInstance';
@@ -37,7 +37,6 @@ const LetterSentPage: React.FC = () => {
     const [total, setTotal] = useState(0);
     const [pageSize] = useState(10);
     const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; delay: number }>>([]);
-    const [expandedLetterId, setExpandedLetterId] = useState<string | null>(null);
 
     // Filter states
     const [showFilters, setShowFilters] = useState(false);
@@ -45,6 +44,25 @@ const LetterSentPage: React.FC = () => {
     const [selectedReceiver, setSelectedReceiver] = useState<string>('all');
     const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
     const [allReceivers, setAllReceivers] = useState<ReceiverOption[]>([]);
+
+    // Modal state
+    const [selectedLetter, setSelectedLetter] = useState<LetterSent | null>(null);
+    const [isClosing, setIsClosing] = useState(false);
+
+    const openModal = (letter: LetterSent) => {
+        setSelectedLetter(letter);
+        setIsClosing(false);
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setSelectedLetter(null);
+            setIsClosing(false);
+            document.body.style.overflow = 'unset';
+        }, 300);
+    };
 
     useEffect(() => {
         const newParticles = Array.from({ length: 20 }, (_, i) => ({
@@ -56,12 +74,10 @@ const LetterSentPage: React.FC = () => {
         setParticles(newParticles);
     }, []);
 
-    // Fetch all receivers for the dropdown (without filters)
     useEffect(() => {
         fetchAllReceivers();
     }, []);
 
-    // Fetch letters when page or filters change
     useEffect(() => {
         fetchLetters(currentPage);
     }, [currentPage, selectedMood, selectedReceiver, dateRange]);
@@ -89,7 +105,6 @@ const LetterSentPage: React.FC = () => {
         try {
             let url = `/letters/sent?page=${page}&pageSize=${pageSize}&sortBy=created_at&sortOrder=DESC`;
 
-            // Add filters to URL
             if (selectedMood !== 'all') {
                 url += `&mood=${selectedMood}`;
             }
@@ -138,10 +153,6 @@ const LetterSentPage: React.FC = () => {
         if (hours > 0) return `${hours} ${t('hour_after')}`;
         if (minutes > 0) return `${minutes} ${t('minute_after')}`;
         return t('just_in_time');
-    };
-
-    const toggleExpand = (letterId: string) => {
-        setExpandedLetterId(expandedLetterId === letterId ? null : letterId);
     };
 
     const handlePageChange = (page: number) => {
@@ -322,7 +333,8 @@ const LetterSentPage: React.FC = () => {
                                 <div
                                     key={letter.id}
                                     className="letter-card"
-                                    style={{ animationDelay: `${index * 0.1}s` }}
+                                    style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                                    onClick={() => openModal(letter)}
                                 >
                                     <div className="letter-card-header">
                                         <div className="envelope-stamp">
@@ -334,21 +346,11 @@ const LetterSentPage: React.FC = () => {
                                     </div>
 
                                     <div className="letter-content-wrapper">
-                                        <p className={`letter-content ${expandedLetterId === letter.id ? 'expanded' : ''}`}>
-                                            {expandedLetterId === letter.id
-                                                ? letter.content
-                                                : (letter.content.length > 28
-                                                    ? letter.content.slice(0, 28) + "..."
-                                                    : letter.content)}
+                                        <p className="letter-content">
+                                            {letter.content.length > 100
+                                                ? letter.content.slice(0, 100) + "..."
+                                                : letter.content}
                                         </p>
-                                        {letter.content.length > 150 && (
-                                            <button
-                                                className="read-more-btn"
-                                                onClick={() => toggleExpand(letter.id)}
-                                            >
-                                                {expandedLetterId === letter.id ? t('collapse') : t('expand')}
-                                            </button>
-                                        )}
                                     </div>
 
                                     <div className="letter-card-footer">
@@ -362,10 +364,6 @@ const LetterSentPage: React.FC = () => {
                                                 <span className="receiver-label">{t('receiver')}</span>
                                                 <span className="receiver-name">{letter.otherUser.username}</span>
                                             </div>
-                                        </div>
-                                        <div className="letter-status">
-                                            <span className="status-dot"></span>
-                                            <span className="status-text">{t('sent_status')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -387,6 +385,67 @@ const LetterSentPage: React.FC = () => {
                     </>
                 )}
             </div>
+
+            {/* Modal */}
+            {selectedLetter && (
+                <div className={`letter-modal-overlay ${isClosing ? 'closing' : ''}`} onClick={closeModal}>
+                    <div className="modal-particles">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className={`modal-particle modal-particle-${i + 1}`}>
+                                ✨
+                            </div>
+                        ))}
+                    </div>
+                    <div className="letter-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="letter-modal-header">
+                            <div className="modal-header-left">
+                                <div className="modal-header-info">
+                                    <h2>{t('letter_detail') || 'Chi tiết thư'}</h2>
+                                    <span className="modal-date">
+                                        <CalendarOutlined /> {formatDate(selectedLetter.createdAt)}
+                                    </span>
+                                </div>
+                            </div>
+                            <button className="modal-close-btn" onClick={closeModal}>
+                                <CloseOutlined />
+                            </button>
+                        </div>
+
+                        <div className="letter-modal-body">
+                            <div className="modal-receiver-section">
+                                <img
+                                    src={selectedLetter.otherUser.avatar}
+                                    alt={selectedLetter.otherUser.username}
+                                    className="modal-receiver-avatar"
+                                />
+                                <div className="modal-receiver-info">
+                                    <span className="modal-receiver-label">{t('receiver')}</span>
+                                    <span className="modal-receiver-name">{selectedLetter.otherUser.username}</span>
+                                </div>
+                            </div>
+
+                            <div className="modal-content-section">
+                                <div className="modal-content-text">
+                                    {selectedLetter.content}
+                                </div>
+                            </div>
+
+                            <div className="modal-status-section">
+                                <div className="letter-status">
+                                    <span className="status-dot"></span>
+                                    <span className="status-text">{t('sent_status')}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="letter-modal-footer">
+                            <button className="modal-close-footer-btn" onClick={closeModal}>
+                                {t('close') || 'Đóng'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

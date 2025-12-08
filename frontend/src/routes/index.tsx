@@ -9,6 +9,7 @@ import SendLetterPage from "../pages/user/SendLetterPage";
 import LetterSentPage from "../pages/user/LetterSentPage";
 import InboxPage from "../pages/user/InboxPage";
 import SettingPage from "../pages/user/SettingPage";
+import HowItWorksPage from "../pages/user/HowItWork";
 
 export const router = createBrowserRouter([
     {
@@ -20,6 +21,10 @@ export const router = createBrowserRouter([
     {
         path: "/",
         element: <Navigate to="/home" replace />
+    },
+    {
+        path: '/admin/home',
+        element: <AdminHomePage />
     },
     {
         element: <PrivateRoute />,
@@ -35,6 +40,7 @@ export const router = createBrowserRouter([
                     { path: "/letter-sent", element: <LetterSentPage /> },
                     { path: "/inbox", element: <InboxPage /> },
                     { path: "/setting", element: <SettingPage /> },
+                    { path: "/how-it-works", element: <HowItWorksPage /> },
                 ],
             },
         ],

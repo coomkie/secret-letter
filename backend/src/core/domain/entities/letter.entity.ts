@@ -19,6 +19,12 @@ export class Letters extends BaseEntity {
     mood: Mood;
 
     @Column({ default: false })
+    isSent: boolean;
+
+    @Column({ type: 'timestamptz', nullable: false })
+    sendAt: Date;
+
+    @Column({ default: false })
     isRead: boolean;
 
     @Column({ default: false })
