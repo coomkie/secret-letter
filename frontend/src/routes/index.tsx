@@ -11,13 +11,22 @@ import HowItWorksPage from "../pages/user/HowItWork";
 import AdminHomePage from "../pages/admin/AdminHomePage";
 import RootRedirect from "./rootRedirect";
 import PrivateRoute from "./PrivateRouter";
+import NotfoundPage from "../pages/auth/NotfoundPage";
 
 export const router = createBrowserRouter([
 
     // ---------- PUBLIC (No layout) ----------
     {
-        path: "/auth",
-        element: <AuthPage />,
+        children: [
+            {
+                element: <DefaultLayout />,
+                children: [{ path: "/auth", element: <AuthPage /> }]
+            }
+        ]
+    },
+    {
+        path: "/404",
+        element: <NotfoundPage />
     },
 
     // ---------- ADMIN ONLY ----------
@@ -51,4 +60,10 @@ export const router = createBrowserRouter([
         path: "/",
         element: <RootRedirect />,
     },
+
+    // ---------- CATCH ALL (404) - Phải để cuối cùng ----------
+    {
+        path: "*",
+        element: <Navigate to="/404" replace />
+    }
 ]);

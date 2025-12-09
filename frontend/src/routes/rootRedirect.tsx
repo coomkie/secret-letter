@@ -8,7 +8,7 @@ const RootRedirect = () => {
 
     if (!token) return <Navigate to="/auth" replace />;
 
-    if (!user) return <div>Loading...</div>;
+    if (!user) return <Navigate to="/404" replace />;
 
     return user.isAdmin
         ? <Navigate to="/admin/home" replace />

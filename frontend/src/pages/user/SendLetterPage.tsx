@@ -68,7 +68,6 @@ const SendLetterPage = () => {
                 });
             }
         } catch (error) {
-            console.error('Error validating reply status:', error);
             message.error(t('validation_error') || 'Không thể xác thực trạng thái thư');
         } finally {
             setIsValidating(false);
@@ -248,7 +247,6 @@ const SendLetterPage = () => {
                 }, 800);
 
             } catch (err: any) {
-                console.error('Error sending reply:', err);
                 const errorMsg = err?.response?.data?.message || t('sent_letter_fail');
                 message.error(errorMsg);
                 setEnvelopeState('open');

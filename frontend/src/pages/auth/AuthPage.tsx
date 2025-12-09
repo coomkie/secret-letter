@@ -138,7 +138,6 @@ const AuthPage = () => {
                             navigate('/home');
                         }
                     } catch (err) {
-                        console.error("Failed to load user data:", err);
                         navigate('/auth');
                     }
                 }
@@ -163,7 +162,6 @@ const AuthPage = () => {
                 setErrors({ general: t('register_success') });
             }
         } catch (error: any) {
-            console.error('Auth error:', error);
 
             if (error.response?.data?.message) {
                 const errorMessage = error.response.data.message;

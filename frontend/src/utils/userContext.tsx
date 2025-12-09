@@ -24,7 +24,6 @@ export const UserProvider = ({ children }: any) => {
                 isAdmin: decodedUser.isAdmin
             });
         } catch (err) {
-            console.error("Failed to load user:", err);
             setUser(null);
             localStorage.removeItem("token");
         }

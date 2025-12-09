@@ -70,7 +70,6 @@ const LetterModal: React.FC<LetterModalProps> = ({ letter, isOpen, onClose, onLe
                 setIsReplied(data === true || data.isReplied === true);
                 setIsReported(data === true || data.isReported === true);
             } catch (error) {
-                console.error('Error checking reply status:', error);
                 setIsReplied(false);
                 setIsReported(false);
             } finally {
@@ -93,7 +92,6 @@ const LetterModal: React.FC<LetterModalProps> = ({ letter, isOpen, onClose, onLe
                 setReadCache(prev => new Set(prev).add(letter.id));
                 if (onLetterRead) onLetterRead(letter.id);
             } catch (err) {
-                console.error("Failed to mark as read:", err);
             }
         };
 
@@ -172,7 +170,6 @@ const LetterModal: React.FC<LetterModalProps> = ({ letter, isOpen, onClose, onLe
             message.success(t('report_success') || 'Báo cáo thành công. Cảm ơn bạn đã góp ý!');
             handleCloseReport();
         } catch (error: any) {
-            console.error('Error reporting letter:', error);
             message.error(error.response?.data?.message || t('report_failed') || 'Báo cáo thất bại. Vui lòng thử lại!');
         } finally {
             setIsReporting(false);

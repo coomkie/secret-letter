@@ -45,18 +45,15 @@ export const useNotifications = () => {
         setSocket(s);
 
         s.on('connect', () => {
-            console.log('Connected to WS server');
             s.emit('register', user.id);
         });
 
         s.on('newLetter', (data: any) => {
-            console.log(' New letter received:', data);
             setHasNewLetter(true);
             setUnreadCount(prev => prev + 1);
         });
 
         s.on('disconnect', () => {
-            console.log('❌ Disconnected from WS server');
         });
 
         return () => {

@@ -40,7 +40,6 @@ const Header: React.FC = () => {
                 jwtDecode<MyJwtPayload>(token);
                 setIsAuthenticated(true);
             } catch (err) {
-                console.log("Invalid token", err);
                 localStorage.removeItem("token");
                 setUser(null);
                 setIsAuthenticated(false);

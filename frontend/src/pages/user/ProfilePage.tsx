@@ -9,6 +9,7 @@ import { message } from 'antd';
 import '../../CSS/Profile.css';
 import api from '../../apis/AxiosInstance';
 import { UserContext } from '../../utils/userContext';
+import { useTranslation } from 'react-i18next';
 
 interface UserProfile {
     id: string;
@@ -32,6 +33,7 @@ const ProfilePage = () => {
     const [editedGender, setEditedGender] = useState(true);
     const [particles, setParticles] = useState<{ id: number, x: number, y: number, delay: number }[]>([]);
     const { reloadUser } = useContext(UserContext);
+    const { t } = useTranslation();
     useEffect(() => {
         // Tạo particle animation
         const newParticles = Array.from({ length: 15 }, (_, i) => ({
@@ -57,14 +59,13 @@ const ProfilePage = () => {
 
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching profile:', error);
-            message.error('Không thể tải thông tin người dùng');
+            message.error(t('profile_1'));
             setLoading(false);
         }
     };
 
     const formatDate = (dateString: string) =>
-        new Date(dateString).toLocaleDateString('vi-VN', {
+        new Date(dateString).toLocaleDateString(t('lang'), {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -92,22 +93,21 @@ const ProfilePage = () => {
             const res = await api.patch(`/users/${profile.id}`, body);
             setProfile(res.data);
             await reloadUser();
-            message.success("Cập nhật thông tin thành công!");
+            message.success(t('profile_2'));
             setIsEditing(false);
 
         } catch (error) {
-            console.error("Error updating profile:", error);
-            message.error("Cập nhật thất bại");
+            message.error(t('profile_3'));
         }
     };
 
-    if (loading) return <div className="profile-page"><div className="loading-spinner"><div className="spinner"></div><p>Đang tải thông tin...</p></div></div>;
-    if (!profile) return <div className="profile-page"><div className="error-message">Không thể tải thông tin người dùng</div></div>;
+    if (loading) return <div className="profile-page"><div className="loading-spinner"><div className="spinner"></div><p>{t('profile_4')}</p></div></div>;
+    if (!profile) return <div className="profile-page"><div className="error-message">{t('profile_5')}</div></div>;
 
     const stats = [
-        { icon: <MailOutlined />, label: 'Thư đã viết', value: profile.letters, color: '#fbbf24', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' },
-        { icon: <MailOutlined />, label: 'Thư đã nhận', value: profile.receivedMatches, color: '#60a5fa', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
-        { icon: <UsergroupAddOutlined />, label: 'Đã kết nối', value: profile.sentMatches, suffix: ' người', color: '#f87171', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)' }
+        { icon: <MailOutlined />, label: t('profile_6'), value: profile.letters, color: '#fbbf24', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' },
+        { icon: <MailOutlined />, label: t('profile_7'), value: profile.receivedMatches, color: '#60a5fa', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
+        { icon: <UsergroupAddOutlined />, label: t('profile_8'), value: profile.sentMatches, suffix: t('profile_9'), color: '#f87171', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)' }
     ];
 
     return (
@@ -135,7 +135,7 @@ const ProfilePage = () => {
                             <p className="profile-email">{profile.email}</p>
                             <div className="profile-badge">
                                 <span className={`badge ${profile.isAdmin ? 'admin-badge' : 'member-badge'}`}>
-                                    {profile.isAdmin ? 'Quản trị viên' : 'Thành viên'}
+                                    {profile.isAdmin ? t('profile_10') : t('profile_11')}
                                 </span>
                             </div>
                         </div>
@@ -161,20 +161,20 @@ const ProfilePage = () => {
                 {/* Information Card */}
                 <div className="profile-info-card">
                     <div className="card-header">
-                        <h2 className="card-title"><UserOutlined /> Thông tin cá nhân</h2>
+                        <h2 className="card-title"><UserOutlined />{t('profile_12')}</h2>
                         {!isEditing ? (
-                            <button className="edit-btn" onClick={handleEdit}><EditOutlined /> Chỉnh sửa</button>
+                            <button className="edit-btn" onClick={handleEdit}><EditOutlined />{t('profile_13')}</button>
                         ) : (
                             <div className="edit-actions">
-                                <button className="save-btn" onClick={handleSave}><SaveOutlined /> Lưu</button>
-                                <button className="cancel-btn" onClick={handleCancel}><CloseOutlined /> Hủy</button>
+                                <button className="save-btn" onClick={handleSave}><SaveOutlined />{t('profile_14')}</button>
+                                <button className="cancel-btn" onClick={handleCancel}><CloseOutlined />{t('profile_15')}</button>
                             </div>
                         )}
                     </div>
 
                     <div className="card-body">
                         <div className="info-row">
-                            <label className="info-label">Tên người dùng</label>
+                            <label className="info-label">{t('profile_16')}</label>
                             {isEditing ? (
                                 <input type="text" className="info-input" value={editedUsername} onChange={e => setEditedUsername(e.target.value)} />
                             ) : <span className="info-value">{profile.username}</span>}
@@ -182,27 +182,27 @@ const ProfilePage = () => {
 
                         <div className="info-row">
                             <label className="info-label">Email</label>
-                            <span className="info-value readonly">{profile.email}<span className="readonly-badge">Chỉ đọc</span></span>
+                            <span className="info-value readonly">{profile.email}<span className="readonly-badge">{t('profile_17')}</span></span>
                         </div>
 
                         <div className="info-row">
-                            <label className="info-label">Giới tính</label>
+                            <label className="info-label">{t('profile_18')}</label>
                             {isEditing ? (
                                 <div className="gender-selector">
-                                    <button className={`gender-btn ${editedGender ? 'active' : ''}`} onClick={() => setEditedGender(true)}><ManOutlined /> Nam</button>
-                                    <button className={`gender-btn ${!editedGender ? 'active' : ''}`} onClick={() => setEditedGender(false)}><WomanOutlined /> Nữ</button>
+                                    <button className={`gender-btn ${editedGender ? 'active' : ''}`} onClick={() => setEditedGender(true)}><ManOutlined /> {t('male')}</button>
+                                    <button className={`gender-btn ${!editedGender ? 'active' : ''}`} onClick={() => setEditedGender(false)}><WomanOutlined /> {t('female')}</button>
                                 </div>
                             ) : (
                                 <span className="info-value">
                                     {profile.gender
-                                        ? <span className="gender-badge male"><ManOutlined /> Nam</span>
-                                        : <span className="gender-badge female"><WomanOutlined /> Nữ</span>}
+                                        ? <span className="gender-badge male"><ManOutlined /> {t('male')}</span>
+                                        : <span className="gender-badge female"><WomanOutlined /> {t('female')}</span>}
                                 </span>
                             )}
                         </div>
 
                         <div className="info-row">
-                            <label className="info-label">Ngày tham gia</label>
+                            <label className="info-label">{t('profile_19')}</label>
                             <span className="info-value"><CalendarOutlined /> {formatDate(profile.created_at)}</span>
                         </div>
                     </div>
@@ -210,12 +210,12 @@ const ProfilePage = () => {
 
                 {/* Activity Timeline */}
                 <div className="profile-activity-card">
-                    <h2 className="card-title"><MailOutlined /> Hoạt động gần đây</h2>
+                    <h2 className="card-title"><MailOutlined />{t('profile_20')}</h2>
                     <div className="timeline">
                         <div className="timeline-item">
                             <div className="timeline-dot"></div>
                             <div className="timeline-content">
-                                <h4>Tham gia Secret Letter</h4>
+                                <h4>{t('profile_21')}</h4>
                                 <p>{formatDate(profile.created_at)}</p>
                             </div>
                         </div>

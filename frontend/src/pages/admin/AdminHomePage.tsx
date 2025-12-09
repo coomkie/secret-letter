@@ -167,7 +167,6 @@ const AdminHomePage = () => {
             setReports(data.reports || []);
         } catch (err: any) {
             setError(err.message || 'Không thể tải dữ liệu');
-            console.error('Error fetching statistics:', err);
         } finally {
             setLoading(false);
         }
@@ -231,7 +230,6 @@ const AdminHomePage = () => {
                 )
             );
         } catch (error) {
-            console.error(error);
             message.error(t('update_failed'));
             setReports(prev =>
                 prev.map(r => (r.id === reportId ? { ...r, _loading: false } : r))

@@ -337,9 +337,6 @@ const LetterSentPage: React.FC = () => {
                                     onClick={() => openModal(letter)}
                                 >
                                     <div className="letter-card-header">
-                                        <div className="envelope-stamp">
-                                            <span className="mood-emoji">{getMoodEmoji(letter.mood)}</span>
-                                        </div>
                                         <span className="letter-date">
                                             <CalendarOutlined /> {formatDate(letter.createdAt)}
                                         </span>
