@@ -1,7 +1,7 @@
 import {Module} from '@nestjs/common';
 import {AppController} from './app.controller';
 import {AppService} from './app.service';
-import {ConfigModule} from '@nestjs/config'
+import {ConfigModule, ConfigService} from '@nestjs/config';
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {UsersModule} from "./presentation/users/users.module";
 import {AuthModule} from "./presentation/auth/auth.module";
@@ -13,23 +13,28 @@ import {NotificationsModule} from "./presentation/notifications/notifications.mo
 import {ReportsModule} from "./presentation/reports/reports.module";
 import {ScheduleModule} from "@nestjs/schedule";
 import {StatisticsModule} from "./presentation/statistics/statistics.module";
+import {CloudinaryModule} from "./presentation/cloudinary/claudinary.module";
 
 @Module({
     imports: [
         ScheduleModule.forRoot(),
-        LettersModule,
         ConfigModule.forRoot({
             isGlobal: true,
         }),
-        TypeOrmModule.forRoot({
-            type: 'postgres',
-            host: 'localhost',
-            port: 5432,
-            username: 'postgres',
-            password: '123456',
-            database: 'secret-letter',
-            autoLoadEntities: true,
-            synchronize: false,
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get('DB_HOST', 'localhost'),
+                port: configService.get('DB_PORT', 5432),
+                username: configService.get('DB_USERNAME', 'postgres'),
+                password: configService.get('DB_PASSWORD', '123456'),
+                database: configService.get('DB_DATABASE', 'secret-letter'),
+                autoLoadEntities: true,
+                synchronize: false,
+                logging: true,
+            }),
+            inject: [ConfigService],
         }),
         UsersModule,
         UserSettingsModule,
@@ -39,7 +44,8 @@ import {StatisticsModule} from "./presentation/statistics/statistics.module";
         MatchesModule,
         ReportsModule,
         NotificationsModule,
-        StatisticsModule
+        StatisticsModule,
+        CloudinaryModule,
     ],
     controllers: [AppController],
     providers: [AppService],

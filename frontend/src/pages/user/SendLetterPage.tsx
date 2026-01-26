@@ -328,7 +328,7 @@ const SendLetterPage = () => {
                     key={particle.id}
                     className="send-particle"
                     style={{
-                        left: `${particle.x}%`,
+                        left: `${particle.x }%`,
                         top: `${particle.y}%`,
                         animationDelay: `${particle.delay}s`
                     }}

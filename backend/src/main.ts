@@ -11,6 +11,8 @@ async function bootstrap() {
         origin: [
             'http://localhost:3000',
             'http://localhost:5173',
+            'https://www.lekhaiduong.site',
+            'http://lekhaiduong.site',
         ],
         credentials: true,
         methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',

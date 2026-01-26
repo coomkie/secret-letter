@@ -91,7 +91,7 @@ const ProfilePage = () => {
             };
 
             const res = await api.patch(`/users/${profile.id}`, body);
-            setProfile(res.data);
+            setProfile(res.data);   
             await reloadUser();
             message.success(t('profile_2'));
             setIsEditing(false);

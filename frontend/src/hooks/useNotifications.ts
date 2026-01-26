@@ -2,9 +2,9 @@
 import { useEffect, useState, useContext } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { UserContext } from '../utils/userContext';
-import axios from 'axios';
+import api from '../apis/AxiosInstance';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_URL = process.env.REACT_APP_API_URL || 'http://api.lekhaiduong.site';
 
 export const useNotifications = () => {
     const { user } = useContext(UserContext);
@@ -19,7 +19,7 @@ export const useNotifications = () => {
         const fetchUnreadCount = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get(`${API_URL}/letters/unread-count`, {
+                const response = await api.get(`/letters/unread-count`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const count = response.data.count;
@@ -37,7 +37,7 @@ export const useNotifications = () => {
     useEffect(() => {
         if (!user?.id) return;
 
-        const s = io(process.env.REACT_APP_WS_URL || 'http://localhost:3001', {
+        const s = io(process.env.REACT_APP_WS_URL || 'wss://api.lekhaiduong.site', {
             auth: { userId: user.id },
             transports: ['websocket', 'polling']
         });
@@ -69,8 +69,7 @@ export const useNotifications = () => {
     const markLetterAsRead = async (letterId: string) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.patch(
-                `${API_URL}/letters/${letterId}/mark-as-read`,
+            await api.patch(`/letters/${letterId}/mark-as-read`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );

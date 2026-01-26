@@ -297,7 +297,7 @@ const HowItWorksPage = () => {
                             <div className="usage-item">
                                 <div className="usage-number">2</div>
                                 <div className="usage-text">
-                                    <h4>{t('usage_5')}n</h4>
+                                    <h4>{t('usage_5')}</h4>
                                     <p>{t('usage_6')}</p>
                                 </div>
                             </div>

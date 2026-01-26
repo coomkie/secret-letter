@@ -194,6 +194,7 @@ export class LettersRepositoryImpl implements ILettersRepository {
 
         const [items, total] = await qb.getManyAndCount();
         return {items, total, page, pageSize};
+
     }
 
     /** INBOX: letters RECEIVED, only isSent=true */

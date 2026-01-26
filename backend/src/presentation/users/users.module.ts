@@ -13,11 +13,13 @@ import {GetAllUsersUseCase} from "../../core/application/use-cases/users/get-all
 import {UpdateUserUseCase} from "../../core/application/use-cases/users/update-user.usecase";
 import {DeleteUserUseCase} from "../../core/application/use-cases/users/delete-user.usecase";
 import {GetUserByIdUseCase} from "../../core/application/use-cases/users/get-user-by-id.usecase";
+import {CloudinaryModule} from "../cloudinary/claudinary.module";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Users, UserSettings, Letters, Matches, Reports]),
         forwardRef(() => AuthModule),
+        CloudinaryModule,
     ],
     controllers: [UsersController],
     providers: [

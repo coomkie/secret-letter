@@ -85,7 +85,7 @@ export class StatisticRepositoryImpl implements IStatisticsRepository {
 
         const reportsYesterday = await this.reportsRepo.count({
             where: {
-                created_at: Between(twoDaysAgo, oneDayAgo)
+              created_at: Between(twoDaysAgo, oneDayAgo)
             }
         });
 

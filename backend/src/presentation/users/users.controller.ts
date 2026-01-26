@@ -1,5 +1,17 @@
-import {Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards} from '@nestjs/common';
-import {ApiBearerAuth, ApiTags} from "@nestjs/swagger";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post,
+    Query,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors
+} from '@nestjs/common';
+import {ApiBearerAuth, ApiBody, ApiConsumes, ApiTags} from "@nestjs/swagger";
 import {CreateUserUseCase} from "../../core/application/use-cases/users/create-user.usecase";
 import {JwtAuthGuard} from "../../infra/auth/jwt-auth.guard";
 import {RolesGuard} from "../../infra/auth/roles.guard";
@@ -11,6 +23,7 @@ import {DeleteUserUseCase} from "../../core/application/use-cases/users/delete-u
 import {GetUserByIdUseCase} from "../../core/application/use-cases/users/get-user-by-id.usecase";
 import {GetAllUserRequest} from "../../core/application/dtos/users/request/get-all-user-request";
 import {UpdateUserRequest} from "../../core/application/dtos/users/request/update-user-request";
+import {FileInterceptor} from "@nestjs/platform-express";
 
 @ApiBearerAuth('jwt')
 @ApiTags('Users')
@@ -57,8 +70,31 @@ export class UsersController {
 
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    UpdateUser(@Param('id') id: string, @Body() body: UpdateUserRequest) {
-        return this.updateUserUseCase.execute(id, body);
+    @UseInterceptors(FileInterceptor('avatar'))
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        description: 'Update user profile and avatar',
+        schema: {
+            type: 'object',
+            properties: {
+                // Define the normal fields
+                username: { type: 'string', nullable: true },
+                gender: { type: 'boolean', nullable: true },
+                // Define the file field specifically for Swagger
+                avatar: {
+                    type: 'string',
+                    format: 'binary',
+                    nullable: true
+                },
+            },
+        },
+    })
+    UpdateUser(
+        @Param('id') id: string,
+        @Body() body: UpdateUserRequest,
+        @UploadedFile() file: Express.Multer.File
+    ) {
+        return this.updateUserUseCase.execute(id, body, file);
     }
 
     @Delete(':id')

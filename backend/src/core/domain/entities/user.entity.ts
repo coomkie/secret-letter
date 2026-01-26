@@ -7,6 +7,7 @@ import {Letters} from "./letter.entity";
 import {Matches} from "./match.entity";
 import {Reports} from "./report.entity";
 import {UserSettings} from "./user-setting.entity";
+import {UserStatus} from "../enums/user-status.enum";
 
 @Entity()
 export class Users extends BaseEntity {
@@ -29,10 +30,18 @@ export class Users extends BaseEntity {
     @Column({default: false})
     isAdmin: boolean;
 
+    @Column({
+        type: 'enum',
+        enum: UserStatus,
+        default: UserStatus.ACTIVE,
+        nullable: false
+    })
+    status: UserStatus;
+
     @OneToMany(() => Letters, letters => letters.user)
     letters: Letters[];
 
-    @OneToMany(() => Matches, matchs => matchs.sender)
+    @OneToMany(() => Matches, matches => matches.sender)
     sentMatches: Matches[];
 
     @OneToMany(() => Matches, match => match.receiver)

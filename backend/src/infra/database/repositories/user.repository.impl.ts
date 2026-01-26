@@ -89,23 +89,23 @@ export class UsersRepositoryImpl implements IUsersRepository {
 
         if (!entity.avatar) {
             entity.avatar = entity.gender
-                ? 'https://res.cloudinary.com/dshe78dng/image/upload/v1763969410/user_male_default_avatar_p3al5t.jpg'
-                : 'https://res.cloudinary.com/dshe78dng/image/upload/v1763969409/user_female_default_avatar_xa7tmw.jpg';
+                ? 'https://res.cloudinary.com/dshe78dng/image/upload/v1764082592/user_male_default_avatar-removebg-preview_dhix5q.png'
+                : 'https://res.cloudinary.com/dshe78dng/image/upload/v1764082592/user_female_default_avatar-removebg-preview_avvhz2.png';
         }
 
         const savedUser = await this._userRepository.save(entity);
 
-        if (data.setting) {
-            const setting = this._settingsRepository.create({
-                user: savedUser,
-                allowRandomMessages: data.setting.allowRandomMessages ?? true,
-                preferredMoods: data.setting.preferredMood ?? [Mood.NEUTRAL],
-                notificationsEnabled: data.setting.notificationEnabled ?? true,
-            });
+        const setting = this._settingsRepository.create({
+            user: savedUser,
+            allowRandomMessages: data.setting?.allowRandomMessages ?? true,
+            preferredMoods: data.setting?.preferredMood ?? [Mood.NEUTRAL],
+            notificationsEnabled: data.setting?.notificationEnabled ?? true,
+        });
 
-            await this._settingsRepository.save(setting);
-        }
+        await this._settingsRepository.save(setting);
 
+
+        await this._settingsRepository.save(setting);
         return savedUser;
     }
 

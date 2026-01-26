@@ -17,11 +17,10 @@ export const router = createBrowserRouter([
 
     // ---------- PUBLIC (No layout) ----------
     {
+        path: "/auth",
+        element: <DefaultLayout />,
         children: [
-            {
-                element: <DefaultLayout />,
-                children: [{ path: "/auth", element: <AuthPage /> }]
-            }
+            { index: true, element: <AuthPage /> } // index route
         ]
     },
     {
