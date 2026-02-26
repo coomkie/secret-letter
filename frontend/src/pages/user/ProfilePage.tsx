@@ -3,9 +3,10 @@ import {
     MailOutlined, UserOutlined, CalendarOutlined,
     EditOutlined, SaveOutlined, CloseOutlined,
     ManOutlined, WomanOutlined,
-    UsergroupAddOutlined
+    UsergroupAddOutlined,
+    CameraOutlined
 } from '@ant-design/icons';
-import { message } from 'antd';
+import { message, Tooltip, Modal, Button } from 'antd';
 import '../../CSS/Profile.css';
 import api from '../../apis/AxiosInstance';
 import { UserContext } from '../../utils/userContext';
@@ -34,6 +35,12 @@ const ProfilePage = () => {
     const [particles, setParticles] = useState<{ id: number, x: number, y: number, delay: number }[]>([]);
     const { reloadUser } = useContext(UserContext);
     const { t } = useTranslation();
+
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
     useEffect(() => {
         // Tạo particle animation
         const newParticles = Array.from({ length: 15 }, (_, i) => ({
@@ -91,7 +98,7 @@ const ProfilePage = () => {
             };
 
             const res = await api.patch(`/users/${profile.id}`, body);
-            setProfile(res.data);   
+            setProfile(res.data);
             await reloadUser();
             message.success(t('profile_2'));
             setIsEditing(false);
@@ -109,7 +116,43 @@ const ProfilePage = () => {
         { icon: <MailOutlined />, label: t('profile_7'), value: profile.receivedMatches, color: '#60a5fa', gradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)' },
         { icon: <UsergroupAddOutlined />, label: t('profile_8'), value: profile.sentMatches, suffix: t('profile_9'), color: '#f87171', gradient: 'linear-gradient(135deg, #f87171 0%, #ef4444 100%)' }
     ];
+    const handleCameraClick = () => {
+        fileInputRef.current?.click();
+    };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+            setIsModalVisible(true);
+        }
+    };
+
+    const handleUploadAvatar = async () => {
+        if (!selectedFile || !profile) return;
+
+        try {
+            setLoading(true);
+            const formData = new FormData();
+            formData.append('avatar', selectedFile);
+            formData.append('gender', String(profile.gender));
+            const res = await api.patch(`/users/${profile.id}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            setProfile(res.data);
+            await reloadUser();
+            message.success(t('profile_2'));
+            setIsModalVisible(false);
+        } catch (error) {
+            message.error(t('profile_3'));
+        } finally {
+            setLoading(false);
+            // Clean up URL demo để tránh rò rỉ bộ nhớ
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        }
+    };
     return (
         <div className="profile-page">
             {particles.map(p => (
@@ -122,13 +165,58 @@ const ProfilePage = () => {
                     <div className="profile-cover"><div className="cover-gradient"></div></div>
                     <div className="profile-avatar-section">
                         <div className="avatar-wrapper-profile">
-                            <img
-                                src={profile.avatar}
-                                alt="Avatar"
-                                className="profile-avatar"
+                            {/* Input file ẩn */}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                style={{ display: 'none' }}
+                                accept="image/*"
+                                onChange={handleFileChange}
                             />
+
+                            <div className="avatar-container-inner">
+                                <img
+                                    src={profile.avatar}
+                                    alt="Avatar"
+                                    className="profile-avatar"
+                                />
+                                <div className="avatar-edit-overlay" onClick={handleCameraClick}>
+                                    <CameraOutlined style={{ fontSize: '30px', color: 'white' }} />
+                                </div>
+                            </div>
                             <div className="avatar-status-profile"></div>
                         </div>
+
+
+                        {/* Popup xem trước ảnh đại diện mới */}
+                        <Modal
+                            title={t('profile_23')}
+                            open={isModalVisible}
+                            onOk={handleUploadAvatar}
+                            onCancel={() => setIsModalVisible(false)}
+                            okText={t('profile_25')}
+                            cancelText={t('profile_26')}
+                            centered
+                        >
+                            <div style={{ textAlign: 'center', padding: '20px' }}>
+                                {previewUrl && (
+                                    <img
+                                        src={previewUrl}
+                                        alt="Preview"
+                                        style={{
+                                            width: '200px',
+                                            height: '200px',
+                                            borderRadius: '50%',
+                                            objectFit: 'cover',
+                                            border: '4px solid #fbbf24'
+                                        }}
+                                    />
+                                )}
+                                <p style={{ marginTop: '15px', color: '#6b7280' }}>
+                                    {t('profile_24')}
+                                </p>
+                            </div>
+                        </Modal>
 
                         <div className="profile-info-header">
                             <h1 className="profile-name">{profile.username}</h1>

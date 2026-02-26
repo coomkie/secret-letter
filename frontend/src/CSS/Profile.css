@@ -133,16 +133,63 @@
 .avatar-wrapper-profile {
     position: relative;
     flex-shrink: 0;
+    cursor: pointer;
 }
 
-.profile-avatar {
+.avatar-container-inner {
+    position: relative;
     width: 140px;
     height: 140px;
     border-radius: 50%;
+    overflow: hidden;
     border: 5px solid white;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.profile-avatar {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     background: white;
+    transition: transform 0.3s ease;
+}
+
+.avatar-edit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.avatar-wrapper-profile:hover .avatar-edit-overlay {
+    opacity: 1;
+}
+
+.avatar-wrapper-profile:hover .edit-text {
+    transform: translateY(0);
+}
+
+.avatar-wrapper-profile:hover .profile-avatar {
+    transform: scale(1.1);
+}
+
+
+.edit-text {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transform: translateY(10px);
+    /* Hiệu ứng chữ bay lên */
+    transition: transform 0.3s ease;
 }
 
 .avatar-status-profile {

@@ -50,7 +50,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
         database: configService.get('DB_DATABASE', 'secret-letter'),
         autoLoadEntities: true,
         synchronize: false,
-        logging: true,
+        logging: false,
       }),
       inject: [ConfigService],
     }),

@@ -9,7 +9,7 @@ export class UpdateUserUseCase {
     @Inject('IUsersRepository')
     private readonly _usersRepository: usersRepository.IUsersRepository,
     private readonly _cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   async execute(
     id: string,
@@ -24,11 +24,8 @@ export class UpdateUserUseCase {
       const result = await this._cloudinaryService.uploadImage(file, id);
       user.avatar = result.secure_url;
     }
-    // user.avatar = model.gender
-    //     ? 'https://res.cloudinary.com/dshe78dng/image/upload/v1764082592/user_male_default_avatar-removebg-preview_dhix5q.png'
-    //     : 'https://res.cloudinary.com/dshe78dng/image/upload/v1764082592/user_female_default_avatar-removebg-preview_avvhz2.png';
-    if (model.gender) {
-      user.gender = !!model.gender;
+    if (Object.prototype.hasOwnProperty.call(model, 'gender') && model.gender !== undefined) {
+      user.gender = model.gender;
     }
     user.updated_at = new Date();
 

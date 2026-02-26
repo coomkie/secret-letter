@@ -13,13 +13,13 @@ export class UpdateUserRequest {
 
   @ApiProperty()
   @IsOptional()
-  @IsBoolean()
   @Transform(({ value }) => {
     if (value === 'true') return true;
     if (value === 'false') return false;
     return value;
   })
   gender?: boolean;
+
   @ApiProperty()
   @IsOptional()
   avatar: string;
