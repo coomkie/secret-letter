@@ -26,7 +26,8 @@ import { MailerModule } from '@nestjs-modules/mailer';
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
         transport: {
-          host: config.get('MAIL_HOST'), // e.g., smtp.gmail.com
+          host: config.get('MAIL_HOST'),
+          port: config.get<number>('MAIL_PORT', 587),
           secure: false,
           auth: {
             user: config.get('MAIL_USER'),
@@ -34,7 +35,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
           },
         },
         defaults: {
-          from: '"No Reply" <noreply@example.com>',
+          from: config.get('MAIL_FROM'), 
         },
       }),
       inject: [ConfigService],
@@ -68,4 +69,4 @@ import { MailerModule } from '@nestjs-modules/mailer';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

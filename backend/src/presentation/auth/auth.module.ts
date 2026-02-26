@@ -12,6 +12,7 @@ import { RegisterUseCase } from '../../core/application/use-cases/auth/register-
 import { MeUseCase } from '../../core/application/use-cases/auth/me-usecase';
 import { LettersModule } from '../letters/letters.module';
 import { MatchesModule } from '../matches/matches.module';
+import { ForgotPasswordUseCase } from 'src/core/application/use-cases/auth/forgot-password-usecase';
 
 @Module({
   imports: [
@@ -34,12 +35,13 @@ import { MatchesModule } from '../matches/matches.module';
     LoginUseCase,
     RegisterUseCase,
     MeUseCase,
+    ForgotPasswordUseCase,
     JwtStrategy,
     {
       provide: 'IAuthService',
       useClass: AuthServiceImpl,
     },
   ],
-  exports: [LoginUseCase, RegisterUseCase, MeUseCase, 'IAuthService'],
+  exports: [LoginUseCase, RegisterUseCase, ForgotPasswordUseCase, MeUseCase, 'IAuthService'],
 })
-export class AuthModule {}
+export class AuthModule { }
