@@ -1,20 +1,20 @@
-import {ApiProperty} from "@nestjs/swagger";
-import {IsArray, IsBoolean, IsOptional, IsString} from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class CreateUserSettingRequest {
-    @ApiProperty()
-    @IsOptional()
-    @IsBoolean()
-    allowRandomMessages?: boolean;
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  allowRandomMessages?: boolean;
 
-    @ApiProperty()
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    preferredMood?: string[];
+  @ApiProperty()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  preferredMood?: string[];
 
-    @ApiProperty()
-    @IsOptional()
-    @IsBoolean()
-    notificationEnabled?: boolean;
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  notificationEnabled?: boolean;
 }

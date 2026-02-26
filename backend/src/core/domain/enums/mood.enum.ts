@@ -1,6 +1,6 @@
 export enum Mood {
-    NEUTRAL = 'neutral',
-    SAD = 'sad',
-    HAPPY = 'happy',
-    ANGRY = 'angry'
+  NEUTRAL = 'neutral',
+  SAD = 'sad',
+  HAPPY = 'happy',
+  ANGRY = 'angry',
 }

@@ -9,29 +9,29 @@ import { GetAllMatchAdminUseCase } from '../../core/application/use-cases/matche
 import { GetMatchByIdUseCase } from '../../core/application/use-cases/matches/get-match-by-id.usecase';
 import { DeleteMatchUseCase } from '../../core/application/use-cases/matches/delete-match.usecase';
 import { MatchesRepositoryImpl } from '../../infra/database/repositories/match.repository.impl';
-import {GetAllMatchUserUseCase} from "../../core/application/use-cases/matches/get-all-match.usecase";
+import { GetAllMatchUserUseCase } from '../../core/application/use-cases/matches/get-all-match.usecase';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Matches, Users, Letters])],
-    controllers: [MatchesController],
-    providers: [
-        CreateMatchUseCase,
-        GetAllMatchAdminUseCase,
-        GetAllMatchUserUseCase,
-        GetMatchByIdUseCase,
-        DeleteMatchUseCase,
-        {
-            provide: 'IMatchesRepository',
-            useClass: MatchesRepositoryImpl,
-        },
-    ],
-    exports: [
-        CreateMatchUseCase,
-        GetAllMatchAdminUseCase,
-        GetAllMatchUserUseCase,
-        GetMatchByIdUseCase,
-        DeleteMatchUseCase,
-        'IMatchesRepository',
-    ],
+  imports: [TypeOrmModule.forFeature([Matches, Users, Letters])],
+  controllers: [MatchesController],
+  providers: [
+    CreateMatchUseCase,
+    GetAllMatchAdminUseCase,
+    GetAllMatchUserUseCase,
+    GetMatchByIdUseCase,
+    DeleteMatchUseCase,
+    {
+      provide: 'IMatchesRepository',
+      useClass: MatchesRepositoryImpl,
+    },
+  ],
+  exports: [
+    CreateMatchUseCase,
+    GetAllMatchAdminUseCase,
+    GetAllMatchUserUseCase,
+    GetMatchByIdUseCase,
+    DeleteMatchUseCase,
+    'IMatchesRepository',
+  ],
 })
 export class MatchesModule {}

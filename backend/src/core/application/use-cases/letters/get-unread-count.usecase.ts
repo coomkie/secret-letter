@@ -3,12 +3,12 @@ import * as letterRepository from '../../interfaces/repositories/letter.reposito
 
 @Injectable()
 export class GetUnreadCountUseCase {
-    constructor(
-        @Inject('ILettersRepository')
-        private readonly lettersRepo: letterRepository.ILettersRepository,
-    ) {}
+  constructor(
+    @Inject('ILettersRepository')
+    private readonly lettersRepo: letterRepository.ILettersRepository,
+  ) {}
 
-    async execute(userId: string): Promise<number> {
-        return await this.lettersRepo.countUnreadLetters(userId);
-    }
+  async execute(userId: string): Promise<number> {
+    return await this.lettersRepo.countUnreadLetters(userId);
+  }
 }

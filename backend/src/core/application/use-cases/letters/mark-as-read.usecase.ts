@@ -3,12 +3,12 @@ import * as letterRepository from '../../interfaces/repositories/letter.reposito
 
 @Injectable()
 export class MarkAsReadUseCase {
-    constructor(
-        @Inject('ILettersRepository')
-        private readonly lettersRepo: letterRepository.ILettersRepository,
-    ) {}
+  constructor(
+    @Inject('ILettersRepository')
+    private readonly lettersRepo: letterRepository.ILettersRepository,
+  ) {}
 
-    async execute(letterId: string, userId: string): Promise<void> {
-        await this.lettersRepo.markAsRead(letterId, userId);
-    }
+  async execute(letterId: string, userId: string): Promise<void> {
+    await this.lettersRepo.markAsRead(letterId, userId);
+  }
 }

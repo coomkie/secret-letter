@@ -1,5 +1,5 @@
 export interface IAuthService {
-    hashPassword(password: string): string;
+  hashPassword(password: string): string;
 
-    generateToken(payload: any): string;
+  generateToken(payload: any): string;
 }
