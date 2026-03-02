@@ -38,7 +38,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  async forgotPassword(@Body() body: ForgotPasswordRequest) {
-    return this.forgotPasswordUseCase.execute(body.email);
+  async forgotPassword(@Body() body: { email: string, lang?: string }) {
+    return this.forgotPasswordUseCase.execute(body.email, body.lang);
   }
 }

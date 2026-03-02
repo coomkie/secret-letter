@@ -375,5 +375,16 @@
   "profile_24": "Bạn có đồng ý thay đổi ảnh đại diện này không?",
   "profile_25": "Xác nhận",
   "profile_26": "Hủy bỏ",
+  "mail_1": "Email không tồn tại trong hệ thống",
+  "mail_2": "[Secret Letter] Khôi phục mật khẩu",
+  "mail_3": "Xin chào ",
+  "mail_4": "Bạn đã yêu cầu khôi phục mật khẩu",
+  "mail_5": "Mật khẩu mới của bạn là: ",
+  "mail_6": "Vui lòng đăng nhập và đổi lại mật khẩu ngay để đảm bảo an toàn.",
+  "mail_7": "Mật khẩu mới đã được gửi vào email của bạn",
+  "mail_8": "Không thể gửi email lúc này. Vui lòng thử lại sau.",
+  "forgot_password_instruction": "Nhập email để nhận mật khẩu mới",
+  "send_new_password": "Gửi mật khẩu mới",
+  "back_to_login": "Quay lại đăng nhập",
   "lang": "vi-VN"
 }

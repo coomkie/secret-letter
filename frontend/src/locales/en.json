@@ -372,5 +372,16 @@
   "profile_24": "Do you agree to change this profile picture?",
   "profile_25": "Confirm",
   "profile_26": "Cancel",
+  "mail_1": "Email does not exist in the system",
+  "mail_2": "[Secret Letter] Password Recovery",
+  "mail_3": "Hello ",
+  "mail_4": "You have requested password recovery",
+  "mail_5": "Your new password is: ",
+  "mail_6": "Please log in and change your password immediately to ensure security.",
+  "mail_7": "Your new password has been sent to your email",
+  "mail_8": "Cannot send email at this time. Please try again later.",
+  "forgot_password_instruction": "Enter your email to receive a new password",
+  "send_new_password": "Send New Password",
+  "back_to_login": "Back to Login",
   "lang": "en-US"
 }
